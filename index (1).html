@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brainrot Calculator</title>
+    <style>
+        :root {
+            --bg-main: #0a0503;
+            --bg-card: #160d07;
+            --bg-input: #26160c;
+            --border-glow: #ffaa00;
+            --text-main: #f0e6df;
+            --text-accent: #00ffcc;
+            --text-muted: #a69285;
+            --btn-success: #2ecc71;
+            --btn-success-hover: #27ae60;
+            --btn-primary: #3498db;
+            --btn-primary-hover: #2980b9;
+            --btn-danger: #e74c3c;
+            --btn-danger-hover: #c0392b;
+            --card-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+            --card-border: 1px solid rgba(255, 255, 255, 0.04);
+            --transition-speed: 0.25s;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-main);
+            color: var(--text-main);
+            margin: 0;
+            padding: 0;
+            display: flex;
+            min-height: 100vh;
+            box-sizing: border-box;
+            transition: background-color var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+            overflow-x: auto;
+        }
+
+        /* Pinned Left Sidebar for Themes */
+        .theme-sidebar {
+            width: 220px;
+            min-width: 220px;
+            background: var(--bg-card);
+            border-right: var(--card-border);
+            padding: 30px 18px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-sizing: border-box;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            overflow-y: auto;
+            transition: background var(--transition-speed) ease, border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+        }
+
+        .theme-sidebar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .theme-sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.05);
+            border-radius: 4px;
+        }
+
+        /* Set Default Theme Button */
+        .btn-set-default {
+            width: 100%;
+            padding: 10px 12px;
+            background-color: transparent;
+            border: 1px dashed var(--border-glow);
+            color: var(--border-glow);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        .btn-set-default:hover {
+            background-color: var(--border-glow);
+            color: var(--bg-main);
+        }
+
+        /* Main Workspace Layout */
+        .workspace-layout {
+            display: grid;
+            grid-template-columns: 240px minmax(550px, 1fr) 320px;
+            gap: 25px;
+            padding: 40px 30px;
+            flex-grow: 1;
+            width: calc(100% - 220px);
+            min-width: 1150px;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 1300px) {
+            body {
+                flex-direction: column;
+                overflow-x: visible;
+            }
+            .theme-sidebar {
+                width: 100%;
+                min-width: 100%;
+                height: auto;
+                position: relative;
+                border-right: none;
+                border-bottom: var(--card-border);
+                padding: 20px;
+                flex-direction: row;
+                flex-wrap: wrap;
+                align-items: center;
+            }
+            .btn-set-default {
+                width: auto;
+                margin-bottom: 0;
+                margin-left: auto;
+                padding: 12px 16px;
+            }
+            .workspace-layout {
+                grid-template-columns: 1fr;
+                width: 100%;
+                min-width: 100%;
+                padding: 20px;
+            }
+        }
+
+        .calculator-card, .saved-card, .mutations-card {
+            background: var(--bg-card);
+            border: var(--card-border);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: var(--card-shadow);
+            height: fit-content;
+            transition: background var(--transition-speed) ease, border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+        }
+
+        .mutations-card {
+            padding: 20px;
+        }
+
+        /* Prevent Calculator Squeezing */
+        .calculator-card {
+            min-width: 500px;
+        }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-size: 18px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--border-glow);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 12px;
+            width: 100%;
+        }
+
+        @media (max-width: 1300px) {
+            .theme-sidebar h2 {
+                margin-bottom: 10px;
+                border-bottom: none;
+                padding-bottom: 0;
+                width: auto;
+                margin-right: 20px;
+            }
+        }
+
+        /* Themes Button Styling */
+        .theme-btn {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            background: var(--bg-input);
+            color: var(--text-main);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
+
+        @media (max-width: 1300px) {
+            .theme-btn {
+                width: auto;
+            }
+        }
+
+        .theme-btn:hover {
+            border-color: var(--border-glow);
+            background: rgba(255, 255, 255, 0.02);
+            transform: translateX(4px);
+        }
+
+        @media (max-width: 1300px) {
+            .theme-btn:hover {
+                transform: translateY(-2px);
+            }
+        }
+
+        .theme-btn.active {
+            border-color: var(--border-glow);
+            background: rgba(255, 255, 255, 0.05);
+            box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.03);
+        }
+
+        .theme-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            box-shadow: 0 0 8px currentColor;
+            flex-shrink: 0;
+        }
+
+        /* Mutation List Style */
+        .mutation-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+            max-height: 480px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .mutation-grid::-webkit-scrollbar {
+            width: 4px;
+        }
+        .mutation-grid::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+        }
+
+        .mutation-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 8px;
+            font-size: 13px;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+        }
+
+        .mutation-name {
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+
+        .mutation-value {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            color: var(--text-accent);
+            font-weight: 700;
+        }
+
+        /* Form Controls */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background-color: var(--bg-input);
+            color: var(--text-main);
+            font-size: 16px;
+            font-weight: 500;
+            box-sizing: border-box;
+            transition: all 0.2s ease;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--border-glow);
+            background-color: rgba(0,0,0,0.2);
+            box-shadow: 0 0 12px rgba(255, 170, 0, 0.15);
+        }
+
+        .help-text {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 5px;
+            opacity: 0.8;
+        }
+
+        /* Action Buttons */
+        .btn-flex {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        button.action-btn {
+            padding: 16px 24px;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-calc {
+            background-color: var(--btn-success);
+            flex: 2;
+        }
+        .btn-calc:hover { 
+            background-color: var(--btn-success-hover); 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.25);
+        }
+
+        .btn-save {
+            background-color: var(--btn-primary);
+            flex: 1;
+        }
+        .btn-save:hover { 
+            background-color: var(--btn-primary-hover); 
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.25);
+        }
+
+        /* Minimalist Results Area */
+        #results {
+            margin-top: 30px;
+            padding: 16px 20px;
+            background-color: rgba(0, 0, 0, 0.2);
+            border-top: 1px dashed rgba(255, 255, 255, 0.08);
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+            display: none;
+        }
+
+        .res-grid-mini {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px 24px;
+        }
+
+        @media (max-width: 550px) {
+            .res-grid-mini {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .mini-stat-box {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .mini-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-muted);
+            margin-bottom: 3px;
+            font-weight: 600;
+        }
+
+        .mini-val {
+            font-size: 15px;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            color: var(--text-main);
+        }
+
+        /* Saved Cards Area */
+        .saved-list {
+            margin-top: 5px;
+            max-height: 550px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .saved-list::-webkit-scrollbar {
+            width: 6px;
+        }
+        .saved-list::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+        }
+
+        .saved-item {
+            background: rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 16px;
+            transition: border-color 0.2s ease;
+        }
+        .saved-item:hover {
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .saved-title-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .saved-title {
+            color: var(--border-glow);
+            font-weight: 700;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid transparent;
+            font-size: 14px;
+            padding: 2px 0;
+            width: 80%;
+        }
+
+        .saved-title:focus {
+            border-bottom-color: var(--text-accent);
+            outline: none;
+        }
+
+        .btn-del {
+            background: transparent;
+            border: 1px solid rgba(231, 76, 60, 0.3);
+            color: var(--btn-danger);
+            border-radius: 8px;
+            width: 26px;
+            height: 26px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-del:hover {
+            background: var(--btn-danger);
+            color: white;
+            border-color: var(--btn-danger);
+        }
+
+        .saved-stats {
+            font-size: 12px;
+            color: var(--text-main);
+            line-height: 1.5;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px 8px;
+        }
+
+        .saved-stats div {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .saved-stats span {
+            font-family: monospace;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Column 1: Themes Sidebar (Pinned Layout to Very Left Side) -->
+    <div class="theme-sidebar">
+        <h2>Themes</h2>
+        <button class="btn-set-default" id="setDefaultBtn" onclick="saveDefaultTheme()">Use as Default</button>
+        
+        <button class="theme-btn active" onclick="setTheme('og')" id="theme-og">
+            <span class="theme-dot" style="color:#ffaa00; background:#ffaa00;"></span> OG Cocoa
+        </button>
+        <button class="theme-btn" onclick="setTheme('void')" id="theme-void">
+            <span class="theme-dot" style="color:#bf5fff; background:#bf5fff;"></span> Purple Void
+        </button>
+        <button class="theme-btn" onclick="setTheme('matrix')" id="theme-matrix">
+            <span class="theme-dot" style="color:#00ff00; background:#00ff00;"></span> Matrix Hack
+        </button>
+        <button class="theme-btn" onclick="setTheme('frost')" id="theme-frost">
+            <span class="theme-dot" style="color:#00bfff; background:#00bfff;"></span> Frostbite
+        </button>
+        <button class="theme-btn" onclick="setTheme('crimson')" id="theme-crimson">
+            <span class="theme-dot" style="color:#ff003c; background:#ff003c;"></span> Crimson Demon
+        </button>
+        <button class="theme-btn" onclick="setTheme('cyberpunk')" id="theme-cyberpunk">
+            <span class="theme-dot" style="color:#ff007f; background:#ff007f;"></span> Neon Cyber
+        </button>
+        <button class="theme-btn" onclick="setTheme('luxury')" id="theme-luxury">
+            <span class="theme-dot" style="color:#d4af37; background:#d4af37;"></span> Royal Gold
+        </button>
+        <button class="theme-btn" onclick="setTheme('toxic')" id="theme-toxic">
+            <span class="theme-dot" style="color:#76ff03; background:#76ff03;"></span> Bio Sludge
+        </button>
+        <button class="theme-btn" onclick="setTheme('synthwave')" id="theme-synthwave">
+            <span class="theme-dot" style="color:#ff5e97; background:#ff5e97;"></span> Outrun 1984
+        </button>
+        <button class="theme-btn" onclick="setTheme('mono')" id="theme-mono">
+            <span class="theme-dot" style="color:#ffffff; background:#ffffff;"></span> Minimal Slate
+        </button>
+    </div>
+
+    <!-- Main Content Workspace Container -->
+    <div class="workspace-layout">
+        
+        <!-- Column 2: Mutations Tab -->
+        <div class="mutations-card">
+            <h2>Mutations</h2>
+            <div class="mutation-grid" id="mutationGrid">
+                <!-- Content handled dynamically by JS -->
+            </div>
+        </div>
+
+        <!-- Column 3: Brainrot Calculator Panel -->
+        <div class="calculator-card">
+            <h2>Brainrot Calculator</h2>
+            
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Daily Offline Income Pool (Optional)</label>
+                    <input type="text" id="dayInc" value="" placeholder="e.g. 900QN" oninput="liveSaveRebirthAndIncome()">
+                    <div class="help-text">Leave blank to skip time estimations.</div>
+                </div>
+                <div class="input-group">
+                    <label>Rebirth Multiplier</label>
+                    <input type="number" id="rebirthMulti" value="" placeholder="e.g. 1" min="1" step="0.1" oninput="liveSaveRebirthAndIncome()">
+                    <div class="help-text">Auto-saving field multiplier.</div>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Current Brainrot Level</label>
+                    <input type="number" id="curLvl" value="" placeholder="e.g. 50">
+                </div>
+                <div class="input-group">
+                    <label>Target Brainrot Level</label>
+                    <input type="number" id="tarLvl" value="75">
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div class="input-group">
+                    <label>Income (At Current Level)</label>
+                    <input type="text" id="curInc" value="" placeholder="e.g. 420.3K">
+                </div>
+                <div class="input-group">
+                    <label>Upgrade Cost (Optional)</label>
+                    <input type="text" id="curCost" value="" placeholder="e.g. 3.1B">
+                    <div class="help-text">Leave blank to skip cost metrics.</div>
+                </div>
+            </div>
+
+            <div class="btn-flex">
+                <button class="action-btn btn-calc" onclick="calculate()">Optimize Production</button>
+                <button class="action-btn btn-save" onclick="saveCalculation()">Save Build</button>
+            </div>
+
+            <!-- Micro Grid Systems Dynamic Results Layout -->
+            <div id="results">
+                <div class="res-grid-mini">
+                    <div class="mini-stat-box">
+                        <span class="mini-label">Base Level 1</span>
+                        <span id="resLvl1" class="mini-val" style="color: #ffda79;">-</span>
+                    </div>
+                    <div class="mini-stat-box">
+                        <span class="mini-label">Base Output</span>
+                        <span id="resBaseInc" class="mini-val" style="color: #bdc581;">-</span>
+                    </div>
+                    <div class="mini-stat-box">
+                        <span class="mini-label">Rebirth Mult</span>
+                        <span id="resInc" class="mini-val" style="color: var(--text-accent);">-</span>
+                    </div>
+                    <div class="mini-stat-box">
+                        <span class="mini-label">Daily Gain</span>
+                        <span id="resAddedDaily" class="mini-val" style="color: #2ecc71;">-</span>
+                    </div>
+                    <div class="mini-stat-box">
+                        <span class="mini-label">Total Cost</span>
+                        <span id="resCost" class="mini-val">-</span>
+                    </div>
+                    <div class="mini-stat-box">
+                        <span class="mini-label">Time Req</span>
+                        <span id="resTime" class="mini-val" style="color: var(--border-glow);">-</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Column 4: Saved Configurations Component Panel -->
+        <div class="saved-card">
+            <h2>Saved Configurations</h2>
+            <div class="saved-list" id="savedList"></div>
+        </div>
+    </div>
+
+    <script>
+        const SUFFIXES = {
+            'K': 1e3, 'M': 1e6, 'B': 1e9, 'T': 1e12, 'Q': 1e15, 'QN': 1e18, 'SX': 1e21, 'SP': 1e24, 'O': 1e27, 'N': 1e30, 'D': 1e33
+        };
+
+        const THEMES = {
+            og: { 
+                main: '#0a0503', card: '#160d07', input: '#26160c', glow: '#ffaa00', accent: '#00ffcc', muted: '#a69285',
+                shadow: '0 12px 40px rgba(0, 0, 0, 0.6)', border: '1px solid rgba(255, 170, 0, 0.04)' 
+            },
+            void: { 
+                main: '#04010a', card: '#0f051c', input: '#1c0b30', glow: '#bf5fff', accent: '#ff7bfb', muted: '#8c7d9e',
+                shadow: '0 12px 40px rgba(191, 95, 255, 0.15)', border: '1px solid rgba(191, 95, 255, 0.08)' 
+            },
+            matrix: { 
+                main: '#000000', card: '#050805', input: '#0d140d', glow: '#00ff00', accent: '#55ff55', muted: '#668866',
+                shadow: '0 0 25px rgba(0, 255, 0, 0.08)', border: '1px solid rgba(0, 255, 0, 0.2)' 
+            },
+            frost: { 
+                main: '#02070a', card: '#08141c', input: '#102430', glow: '#00bfff', accent: '#e0ffff', muted: '#7fa3b5',
+                shadow: '0 12px 40px rgba(0, 191, 255, 0.12)', border: '1px solid rgba(0, 191, 255, 0.15)' 
+            },
+            crimson: { 
+                main: '#080002', card: '#170106', input: '#26030b', glow: '#ff003c', accent: '#ff809b', muted: '#b57f8a',
+                shadow: '0 12px 40px rgba(255, 0, 60, 0.18)', border: '1px solid rgba(255, 0, 60, 0.12)' 
+            },
+            cyberpunk: {
+                main: '#0b0914', card: '#141126', input: '#1e193a', glow: '#ff007f', accent: '#00f6ff', muted: '#777196',
+                shadow: '0 15px 45px rgba(255, 0, 127, 0.2), 0 0 15px rgba(0, 246, 255, 0.05)', border: '1px solid rgba(255, 0, 127, 0.15)'
+            },
+            luxury: {
+                main: '#0d0d0d', card: '#1a1a1a', input: '#262626', glow: '#d4af37', accent: '#ffffff', muted: '#8c8c8c',
+                shadow: '0 25px 55px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(212, 175, 55, 0.05)', border: '1px solid rgba(212, 175, 55, 0.25)'
+            },
+            toxic: {
+                main: '#0d0f0c', card: '#161a14', input: '#20261d', glow: '#76ff03', accent: '#eeff41', muted: '#7b8776',
+                shadow: '0 12px 35px rgba(118, 255, 3, 0.12)', border: '1px solid rgba(118, 255, 3, 0.08)'
+            },
+            synthwave: {
+                main: '#1a0933', card: '#271247', input: '#3a1b69', glow: '#ff5e97', accent: '#fefe66', muted: '#a183ca',
+                shadow: '0 12px 40px rgba(255, 94, 151, 0.18)', border: '1px solid rgba(254, 254, 102, 0.12)'
+            },
+            mono: {
+                main: '#161719', card: '#212326', input: '#2b2e33', glow: '#ffffff', accent: '#99aab5', muted: '#72767d',
+                shadow: '0 8px 24px rgba(0, 0, 0, 0.3)', border: '1px solid rgba(255, 255, 255, 0.06)'
+            }
+        };
+
+        const MUTATIONS_DATA = [
+            { name: 'phantom', val: 35 },
+            { name: 'rainbow', val: 30 },
+            { name: 'bacon', val: 30 },
+            { name: 'alien', val: 22 },
+            { name: 'electrified', val: 16 },
+            { name: 'wet', val: 16 },
+            { name: 'shadow', val: 12 },
+            { name: 'enchanted', val: 12 },
+            { name: 'virus', val: 10 },
+            { name: 'void', val: 10 },
+            { name: 'radioactive', val: 8 },
+            { name: 'molten', val: 6 },
+            { name: 'plasma', val: 4 },
+            { name: 'diamond', val: 2 },
+            { name: 'gold', val: 1.5 }
+        ];
+
+        let savedBuilds = [];
+        let currentlySelectedTheme = 'og';
+
+        const SAVE_KEY_INCOME   = 'brainrot_ui_income_v4';
+        const SAVE_KEY_REBIRTH  = 'brainrot_ui_rebirth_v4';
+        const SAVE_KEY_BUILDS   = 'brainrot_ui_builds_v4';
+        const SAVE_KEY_THEME    = 'brainrot_ui_theme_v4';
+
+        window.onload = function() {
+            let savedIncome = localStorage.getItem(SAVE_KEY_INCOME);
+            if (savedIncome) document.getElementById('dayInc').value = savedIncome;
+
+            let savedRebirth = localStorage.getItem(SAVE_KEY_REBIRTH);
+            if (savedRebirth) document.getElementById('rebirthMulti').value = savedRebirth;
+            
+            let storedBuilds = localStorage.getItem(SAVE_KEY_BUILDS);
+            if (storedBuilds) {
+                savedBuilds = JSON.parse(storedBuilds);
+                renderSavedBuilds();
+            }
+
+            let savedTheme = localStorage.getItem(SAVE_KEY_THEME);
+            if (savedTheme && THEMES[savedTheme]) {
+                setTheme(savedTheme);
+            } else {
+                setTheme('og');
+            }
+
+            renderMutations();
+        };
+
+        function renderMutations() {
+            const grid = document.getElementById('mutationGrid');
+            grid.innerHTML = '';
+            MUTATIONS_DATA.forEach(item => {
+                grid.innerHTML += `
+                    <div class="mutation-row">
+                        <span class="mutation-name">${item.name}</span>
+                        <span class="mutation-value">${item.val}x</span>
+                    </div>
+                `;
+            });
+        }
+
+        function liveSaveRebirthAndIncome() {
+            localStorage.setItem(SAVE_KEY_INCOME, document.getElementById('dayInc').value);
+            localStorage.setItem(SAVE_KEY_REBIRTH, document.getElementById('rebirthMulti').value);
+        }
+
+        function setTheme(themeKey) {
+            currentlySelectedTheme = themeKey;
+            const theme = THEMES[themeKey];
+            const root = document.documentElement;
+            
+            root.style.setProperty('--bg-main', theme.main);
+            root.style.setProperty('--bg-card', theme.card);
+            root.style.setProperty('--bg-input', theme.input);
+            root.style.setProperty('--border-glow', theme.glow);
+            root.style.setProperty('--text-accent', theme.accent);
+            root.style.setProperty('--text-muted', theme.muted);
+            root.style.setProperty('--card-shadow', theme.shadow);
+            root.style.setProperty('--card-border', theme.border);
+
+            document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById(`theme-${themeKey}`);
+            if (activeBtn) activeBtn.classList.add('active');
+        }
+
+        function saveDefaultTheme() {
+            localStorage.setItem(SAVE_KEY_THEME, currentlySelectedTheme);
+            
+            const defBtn = document.getElementById('setDefaultBtn');
+            const originalText = defBtn.innerText;
+            defBtn.innerText = '✓ Default Set!';
+            defBtn.style.borderColor = 'var(--btn-success)';
+            defBtn.style.color = 'var(--btn-success)';
+            
+            setTimeout(() => {
+                defBtn.innerText = originalText;
+                defBtn.style.borderColor = '';
+                defBtn.style.color = '';
+            }, 2000);
+        }
+
+        function parseInput(valStr) {
+            if (!valStr) return 0;
+            valStr = valStr.toUpperCase().replace(/[\s,$]/g, '');
+            for (let suffix of ['QN', 'SX', 'SP']) {
+                if (valStr.endsWith(suffix)) {
+                    return parseFloat(valStr.slice(0, -suffix.length)) * SUFFIXES[suffix];
+                }
+            }
+            let lastChar = valStr.slice(-1);
+            if (SUFFIXES[lastChar]) {
+                return parseFloat(valStr.slice(0, -1)) * SUFFIXES[lastChar];
+            }
+            return parseFloat(valStr) || 0;
+        }
+
+        function formatOutput(num) {
+            if (num === 0) return '0';
+            if (num < 1000) return num.toFixed(2).replace(/\.00$/, '');
+            let sortedKeys = Object.keys(SUFFIXES).sort((a, b) => SUFFIXES[b] - SUFFIXES[a]);
+            for (let key of sortedKeys) {
+                if (num >= SUFFIXES[key]) {
+                    return (num / SUFFIXES[key]).toFixed(2).replace(/\.00$/, '') + key;
+                }
+            }
+            return num.toFixed(2).replace(/\.00$/, '');
+        }
+
+        function runMath() {
+            let curLvl = parseInt(document.getElementById('curLvl').value);
+            let tarLvl = parseInt(document.getElementById('tarLvl').value);
+            let rawDailyIncome = parseInput(document.getElementById('dayInc').value);
+            let rawCurIncome = parseInput(document.getElementById('curInc').value);
+            let rawCurCost = parseInput(document.getElementById('curCost').value);
+            let rebirthMulti = parseFloat(document.getElementById('rebirthMulti').value) || 1;
+
+            if (isNaN(curLvl) || isNaN(tarLvl) || rawCurIncome <= 0 || curLvl >= tarLvl) {
+                return null;
+            }
+
+            liveSaveRebirthAndIncome();
+
+            let totalCost = 0;
+            let tempCost = rawCurCost;
+            let tempIncome = rawCurIncome;
+
+            for (let i = 0; i < (tarLvl - curLvl); i++) {
+                if (rawCurCost > 0) {
+                    totalCost += tempCost;
+                    tempCost *= 1.5;
+                }
+                tempIncome *= 1.25;
+            }
+
+            let baseLvl1Stat = rawCurIncome / Math.pow(1.25, (curLvl - 1));
+
+            let baseIncNoMulti = tempIncome; 
+            let finalOutputWithRebirth = tempIncome * rebirthMulti;
+            let currentOutputWithRebirth = rawCurIncome * rebirthMulti;
+
+            let netIncomeIncreasePerSecond = finalOutputWithRebirth - currentOutputWithRebirth;
+            let dailyNetAddedValue = netIncomeIncreasePerSecond * 86400;
+
+            let timeString = "N/A";
+            if (rawDailyIncome > 0 && rawCurCost > 0) {
+                let hourlyIncome = rawDailyIncome / 24.0;
+                let timeHours = totalCost / hourlyIncome;
+                timeString = timeHours < 0.01 ? "Instant" : timeHours < 1 ? (timeHours * 60).toFixed(1) + " mins" : timeHours > 24 ? (timeHours / 24).toFixed(1) + " days" : timeHours.toFixed(1) + " hours";
+            }
+
+            return {
+                label: `Lvl ${curLvl} → ${tarLvl}`,
+                lvl1Base: formatOutput(baseLvl1Stat) + "/s",
+                baseInc: formatOutput(baseIncNoMulti) + "/s",
+                finalInc: formatOutput(finalOutputWithRebirth) + "/s",
+                addedDaily: "+" + formatOutput(dailyNetAddedValue),
+                totalCost: rawCurCost > 0 ? formatOutput(totalCost) : "N/A",
+                timeReq: timeString
+            };
+        }
+
+        function calculate() {
+            let currentCalculation = runMath();
+            if (!currentCalculation) {
+                alert("Please fill out levels and current income fields accurately. Target level must be higher than current level.");
+                return;
+            }
+            document.getElementById('resLvl1').innerText = currentCalculation.lvl1Base;
+            document.getElementById('resBaseInc').innerText = currentCalculation.baseInc;
+            document.getElementById('resInc').innerText = currentCalculation.finalInc;
+            document.getElementById('resAddedDaily').innerText = currentCalculation.addedDaily;
+            document.getElementById('resCost').innerText = currentCalculation.totalCost;
+            document.getElementById('resTime').innerText = currentCalculation.timeReq;
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function saveCalculation() {
+            let data = runMath();
+            if (!data) {
+                alert("Run a valid calculation configuration before saving!");
+                return;
+            }
+            savedBuilds.push(data);
+            localStorage.setItem(SAVE_KEY_BUILDS, JSON.stringify(savedBuilds));
+            renderSavedBuilds();
+        }
+
+        function deleteBuild(index) {
+            savedBuilds.splice(index, 1);
+            localStorage.setItem(SAVE_KEY_BUILDS, JSON.stringify(savedBuilds));
+            renderSavedBuilds();
+        }
+
+        document.addEventListener('input', function(e) {
+            if(e.target && e.target.classList.contains('saved-title')) {
+                let idx = e.target.getAttribute('data-idx');
+                savedBuilds[idx].label = e.target.value;
+                localStorage.setItem(SAVE_KEY_BUILDS, JSON.stringify(savedBuilds));
+            }
+        });
+
+        function renderSavedBuilds() {
+            const list = document.getElementById('savedList');
+            list.innerHTML = '';
+            if (savedBuilds.length === 0) {
+                list.innerHTML = '<div style="color:var(--text-muted); text-align:center; font-size:14px; margin-top:30px; opacity: 0.6;">No configurations saved yet.</div>';
+                return;
+            }
+            savedBuilds.forEach((build, index) => {
+                list.innerHTML += `
+                    <div class="saved-item">
+                        <div class="saved-title-container">
+                            <input class="saved-title" type="text" value="${build.label}" data-idx="${index}" title="Click to rename">
+                            <button class="btn-del" onclick="deleteBuild(${index})">✕</button>
+                        </div>
+                        <div class="saved-stats">
+                            <div>Base Lvl 1: <span>${build.lvl1Base}</span></div>
+                            <div>Base Out: <span>${build.baseInc}</span></div>
+                            <div>Rebirth Mult: <span style="color:var(--text-accent);">${build.finalInc}</span></div>
+                            <div>Daily Gain: <span style="color:#2ecc71;">${build.addedDaily}</span></div>
+                            <div>Cost: <span style="color:var(--text-accent);">${build.totalCost}</span></div>
+                            <div>Time: <span style="color:var(--border-glow);">${build.timeReq}</span></div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+    </script>
+</body>
+</html>
