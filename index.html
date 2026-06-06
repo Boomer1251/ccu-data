@@ -117,6 +117,9 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             padding-bottom: 12px;
             width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
         .theme-btn {
@@ -146,9 +149,9 @@
         .mutation-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: rgba(0, 0, 0, 0.15); border-radius: 10px; font-size: 13px; border: 1px solid rgba(255, 255, 255, 0.02); cursor: pointer; user-select: none; }
         .mutation-row:hover { background: rgba(255, 255, 255, 0.02); border-color: rgba(255, 255, 255, 0.08); }
         .mutation-row.selected { border-color: var(--border-glow); background: rgba(255, 170, 0, 0.04); }
-        .mutation-cb { appearance: none; width: 16px; height: 16px; border: 2px solid var(--text-muted); border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+        .mutation-cb { appearance: none; width: 16px; height: 16px; border: 2px solid var(--text-muted); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
         .mutation-row.selected .mutation-cb { border-color: var(--border-glow); background: var(--border-glow); }
-        .mutation-row.selected .mutation-cb::after { content: '✓'; color: var(--bg-main); font-size: 11px; font-weight: 900; }
+        .mutation-row.selected .mutation-cb::after { content: ''; width: 6px; height: 6px; background: var(--bg-main); border-radius: 50%; }
         .mutation-name { font-weight: 600; text-transform: capitalize; flex-grow: 1; }
         .mutation-value { font-family: monospace; color: var(--text-accent); font-weight: 700; }
 
@@ -180,11 +183,17 @@
         .saved-stats span { font-family: monospace; font-weight: bold; }
 
         .rot-card { grid-column: 1 / -1; margin-top: 10px; }
-        .list-header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; gap: 20px; flex-wrap: wrap; }
+        .list-header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; gap: 20px; flex-wrap: wrap; width: 100%; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 12px;}
+        .list-header-controls h2 { border-bottom: none; margin-bottom: 0; padding-bottom: 0; width: auto; flex-grow: 1; }
         .search-controls-wrapper { display: flex; gap: 15px; flex-grow: 1; justify-content: flex-end; max-width: 600px; width: 100%; }
         .search-input { padding: 10px 14px; font-size: 14px; border-radius: 10px; flex-grow: 2; }
         .filter-select { width: auto; min-width: 180px; padding: 10px 14px; font-size: 14px; border-radius: 10px; flex-grow: 1; }
+        
+        .btn-toggle-list { background: transparent; border: 1px solid var(--border-glow); color: var(--border-glow); padding: 6px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer; text-transform: uppercase; margin-right: 15px; }
+        .btn-toggle-list:hover { background: var(--border-glow); color: var(--bg-main); }
+        
         .rot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 20px; }
+        .rot-grid.collapsed { display: none !important; }
         .rot-item { background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
         .rot-header { display: flex; justify-content: space-between; align-items: center; }
         .rot-name { font-weight: 700; font-size: 14px; color: var(--text-main); }
@@ -286,8 +295,8 @@
 
         <div class="rot-card">
             <div class="list-header-controls">
-                <h2>Brainrot Upgrades Management Grid</h2>
-                <div class="search-controls-wrapper">
+                <h2>Brainrot Upgrades Management Grid <button class="btn-toggle-list" id="toggleListBtn" onclick="toggleBrainrotGrid()">Hide List</button></h2>
+                <div class="search-controls-wrapper" id="searchControls">
                     <input type="text" id="searchBar" class="search-input" placeholder="Search upgrade name or rarity..." oninput="renderBrainrotList()">
                     <select id="rarityFilter" class="filter-select" onchange="renderBrainrotList()">
                         <option value="all">All Rarities</option>
@@ -361,7 +370,7 @@
             { name: "Ketupat Kepat", rarity: "eternal", baseInc: 1000000 }, { name: "Professora 67", rarity: "eternal", baseInc: 1000000 }, { name: "Astro Tim", rarity: "eternal", baseInc: 1100000 }, { name: "Baba Yaga", rarity: "eternal", baseInc: 1200000 }, { name: "Kicky", rarity: "eternal", baseInc: 1400000 }
         ];
 
-        let activeMutations = new Set();
+        let selectedMutationId = null; // Changed to track single selection radio-style
         let savedBuilds = [];
         let currentlySelectedTheme = 'og';
 
@@ -400,19 +409,44 @@
         }
 
         function toggleMutation(id) {
+            // Radio button behavior: Clear out the old selection first
+            if (selectedMutationId && selectedMutationId !== id) {
+                const oldRow = document.getElementById(`mutrow-${selectedMutationId}`);
+                if (oldRow) oldRow.classList.remove('selected');
+            }
+
             const row = document.getElementById(`mutrow-${id}`);
-            if (activeMutations.has(id)) { activeMutations.delete(id); row.classList.remove('selected'); }
-            else { activeMutations.add(id); row.classList.add('selected'); }
+            if (selectedMutationId === id) {
+                // If clicking the already active mutation, toggle it completely off
+                selectedMutationId = null;
+                row.classList.remove('selected');
+            } else {
+                selectedMutationId = id;
+                row.classList.add('selected');
+            }
             globalInputsUpdated();
         }
 
         function getActiveMutationMultiplier() {
-            let mult = 1;
-            activeMutations.forEach(id => {
-                const item = MUTATIONS_DATA.find(m => m.id === id);
-                if (item) mult *= item.val;
-            });
-            return mult;
+            if (!selectedMutationId) return 1;
+            const item = MUTATIONS_DATA.find(m => m.id === selectedMutationId);
+            return item ? item.val : 1;
+        }
+
+        function toggleBrainrotGrid() {
+            const grid = document.getElementById('rotGrid');
+            const btn = document.getElementById('toggleListBtn');
+            const searchWrapper = document.getElementById('searchControls');
+            
+            if (grid.classList.contains('collapsed')) {
+                grid.classList.remove('collapsed');
+                searchWrapper.style.display = 'flex';
+                btn.innerText = 'Hide List';
+            } else {
+                grid.classList.add('collapsed');
+                searchWrapper.style.display = 'none';
+                btn.innerText = 'Show List';
+            }
         }
 
         function globalInputsUpdated() {
@@ -442,7 +476,6 @@
             BRAINROT_UPGRADES.forEach(upg => {
                 if (filter !== 'all' && upg.rarity !== filter) return;
                 
-                // Real-time search filter matching name or rarity tags
                 if (query !== '') {
                     const matchName = upg.name.toLowerCase().includes(query);
                     const matchRarity = upg.rarity.toLowerCase().includes(query);
