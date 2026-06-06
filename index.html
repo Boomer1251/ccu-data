@@ -14,14 +14,11 @@
             --text-accent: #00ffcc;
             --text-muted: #a69285;
             --btn-success: #2ecc71;
-            --btn-success-hover: #27ae60;
             --btn-primary: #3498db;
-            --btn-primary-hover: #2980b9;
             --btn-danger: #e74c3c;
-            --btn-danger-hover: #c0392b;
             --card-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
             --card-border: 1px solid rgba(255, 255, 255, 0.04);
-            --transition-speed: 0.25s;
+            --transition-speed: 0.2s;
         }
 
         body {
@@ -33,7 +30,7 @@
             display: flex;
             min-height: 100vh;
             box-sizing: border-box;
-            transition: background-color var(--transition-speed) cubic-bezier(0.4, 0, 0.2, 1);
+            transition: background-color var(--transition-speed) ease;
             overflow-x: auto;
         }
 
@@ -117,9 +114,6 @@
             border-bottom: 1px solid rgba(255, 255, 255, 0.05);
             padding-bottom: 12px;
             width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
 
         .theme-btn {
@@ -149,7 +143,9 @@
         .mutation-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: rgba(0, 0, 0, 0.15); border-radius: 10px; font-size: 13px; border: 1px solid rgba(255, 255, 255, 0.02); cursor: pointer; user-select: none; }
         .mutation-row:hover { background: rgba(255, 255, 255, 0.02); border-color: rgba(255, 255, 255, 0.08); }
         .mutation-row.selected { border-color: var(--border-glow); background: rgba(255, 170, 0, 0.04); }
-        .mutation-cb { appearance: none; width: 16px; height: 16px; border: 2px solid var(--text-muted); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        
+        /* Checkbox styling now utilizes theme accent variables cleanly */
+        .mutation-cb { appearance: none; width: 16px; height: 16px; border: 2px solid var(--text-muted); border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.1s ease; }
         .mutation-row.selected .mutation-cb { border-color: var(--border-glow); background: var(--border-glow); }
         .mutation-row.selected .mutation-cb::after { content: ''; width: 6px; height: 6px; background: var(--bg-main); border-radius: 50%; }
         .mutation-name { font-weight: 600; text-transform: capitalize; flex-grow: 1; }
@@ -183,13 +179,17 @@
         .saved-stats span { font-family: monospace; font-weight: bold; }
 
         .rot-card { grid-column: 1 / -1; margin-top: 10px; }
+        
+        /* Cleaned layout positioning for layout stability */
         .list-header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; gap: 20px; flex-wrap: wrap; width: 100%; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 12px;}
-        .list-header-controls h2 { border-bottom: none; margin-bottom: 0; padding-bottom: 0; width: auto; flex-grow: 1; }
+        .list-header-title-area { display: flex; align-items: center; gap: 15px; flex-grow: 1; }
+        .list-header-title-area h2 { border-bottom: none; margin-bottom: 0; padding-bottom: 0; width: auto; }
         .search-controls-wrapper { display: flex; gap: 15px; flex-grow: 1; justify-content: flex-end; max-width: 600px; width: 100%; }
         .search-input { padding: 10px 14px; font-size: 14px; border-radius: 10px; flex-grow: 2; }
         .filter-select { width: auto; min-width: 180px; padding: 10px 14px; font-size: 14px; border-radius: 10px; flex-grow: 1; }
         
-        .btn-toggle-list { background: transparent; border: 1px solid var(--border-glow); color: var(--border-glow); padding: 6px 12px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer; text-transform: uppercase; margin-right: 15px; }
+        /* Locked visibility modifier button tracking properties */
+        .btn-toggle-list { background: transparent; border: 1px solid var(--border-glow); color: var(--border-glow); padding: 8px 16px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer; text-transform: uppercase; white-space: nowrap; height: fit-content; }
         .btn-toggle-list:hover { background: var(--border-glow); color: var(--bg-main); }
         
         .rot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 20px; }
@@ -230,6 +230,10 @@
         <button class="theme-btn" onclick="setTheme('luxury')" id="theme-luxury"><span class="theme-dot" style="color:#d4af37; background:#d4af37;"></span> Royal Gold</button>
         <button class="theme-btn" onclick="setTheme('toxic')" id="theme-toxic"><span class="theme-dot" style="color:#76ff03; background:#76ff03;"></span> Bio Sludge</button>
         <button class="theme-btn" onclick="setTheme('synthwave')" id="theme-synthwave"><span class="theme-dot" style="color:#ff5e97; background:#ff5e97;"></span> Outrun 1984</button>
+        <button class="theme-btn" onclick="setTheme('deep')" id="theme-deep"><span class="theme-dot" style="color:#00ffff; background:#00ffff;"></span> Subnautica Deep</button>
+        <button class="theme-btn" onclick="setTheme('vampire')" id="theme-vampire"><span class="theme-dot" style="color:#9c0000; background:#9c0000;"></span> Vampire Castle</button>
+        <button class="theme-btn" onclick="setTheme('retro')" id="theme-retro"><span class="theme-dot" style="color:#ff00f0; background:#ff00f0;"></span> Retrowave Dream</button>
+        <button class="theme-btn" onclick="setTheme('orange')" id="theme-orange"><span class="theme-dot" style="color:#ff6f00; background:#ff6f00;"></span> Overwatch Orange</button>
         <button class="theme-btn" onclick="setTheme('mono')" id="theme-mono"><span class="theme-dot" style="color:#ffffff; background:#ffffff;"></span> Minimal Slate</button>
     </div>
 
@@ -295,7 +299,10 @@
 
         <div class="rot-card">
             <div class="list-header-controls">
-                <h2>Brainrot Upgrades Management Grid <button class="btn-toggle-list" id="toggleListBtn" onclick="toggleBrainrotGrid()">Hide List</button></h2>
+                <div class="list-header-title-area">
+                    <h2>Brainrot Upgrades Management Grid</h2>
+                    <button class="btn-toggle-list" id="toggleListBtn" onclick="toggleBrainrotGrid()">Hide List</button>
+                </div>
                 <div class="search-controls-wrapper" id="searchControls">
                     <input type="text" id="searchBar" class="search-input" placeholder="Search upgrade name or rarity..." oninput="renderBrainrotList()">
                     <select id="rarityFilter" class="filter-select" onchange="renderBrainrotList()">
@@ -332,6 +339,10 @@
             luxury: { main: '#0d0d0d', card: '#1a1a1a', input: '#262626', glow: '#d4af37', accent: '#ffffff', muted: '#8c8c8c', shadow: '0 25px 55px rgba(0, 0, 0, 0.85)', border: '1px solid rgba(212, 175, 55, 0.25)' },
             toxic: { main: '#0d0f0c', card: '#161a14', input: '#20261d', glow: '#76ff03', accent: '#eeff41', muted: '#7b8776', shadow: '0 12px 35px rgba(118, 255, 3, 0.12)', border: '1px solid rgba(118, 255, 3, 0.08)' },
             synthwave: { main: '#1a0933', card: '#271247', input: '#3a1b69', glow: '#ff5e97', accent: '#fefe66', muted: '#a183ca', shadow: '0 12px 40px rgba(255, 94, 151, 0.18)', border: '1px solid rgba(254, 254, 102, 0.12)' },
+            deep: { main: '#01111a', card: '#032336', input: '#053552', glow: '#00ffff', accent: '#00ffaa', muted: '#417d9e', shadow: '0 12px 40px rgba(0, 255, 255, 0.15)', border: '1px solid rgba(0, 255, 255, 0.1)' },
+            vampire: { main: '#0f0202', card: '#210505', input: '#380a0a', glow: '#da0000', accent: '#ff5252', muted: '#9e6262', shadow: '0 12px 45px rgba(218, 0, 0, 0.2)', border: '1px solid rgba(218, 0, 0, 0.15)' },
+            retro: { main: '#12041c', card: '#240a36', input: '#3b1154', glow: '#ff00f0', accent: '#00ffff', muted: '#a170c4', shadow: '0 12px 40px rgba(255, 0, 240, 0.2)', border: '1px solid rgba(255, 0, 240, 0.12)' },
+            orange: { main: '#120e0a', card: '#241a12', input: '#382719', glow: '#ff6f00', accent: '#ffffff', muted: '#a88c74', shadow: '0 12px 40px rgba(255, 111, 0, 0.15)', border: '1px solid rgba(255, 111, 0, 0.12)' },
             mono: { main: '#161719', card: '#212326', input: '#2b2e33', glow: '#ffffff', accent: '#99aab5', muted: '#72767d', shadow: '0 8px 24px rgba(0, 0, 0, 0.3)', border: '1px solid rgba(255, 255, 255, 0.06)' }
         };
 
@@ -370,7 +381,7 @@
             { name: "Ketupat Kepat", rarity: "eternal", baseInc: 1000000 }, { name: "Professora 67", rarity: "eternal", baseInc: 1000000 }, { name: "Astro Tim", rarity: "eternal", baseInc: 1100000 }, { name: "Baba Yaga", rarity: "eternal", baseInc: 1200000 }, { name: "Kicky", rarity: "eternal", baseInc: 1400000 }
         ];
 
-        let selectedMutationId = null; // Changed to track single selection radio-style
+        let selectedMutationId = null;
         let savedBuilds = [];
         let currentlySelectedTheme = 'og';
 
@@ -398,31 +409,33 @@
             const grid = document.getElementById('mutationGrid');
             grid.innerHTML = '';
             MUTATIONS_DATA.forEach(item => {
-                grid.innerHTML += `
-                    <div class="mutation-row" id="mutrow-${item.id}" onclick="toggleMutation('${item.id}')">
-                        <div class="mutation-cb"></div>
-                        <span class="mutation-name">${item.name}</span>
-                        <span class="mutation-value">${item.val}x</span>
-                    </div>
+                const div = document.createElement('div');
+                div.className = 'mutation-row';
+                div.id = `mutrow-${item.id}`;
+                div.innerHTML = `
+                    <div class="mutation-cb"></div>
+                    <span class="mutation-name">${item.name}</span>
+                    <span class="mutation-value">${item.val}x</span>
                 `;
+                // FIXED: Instantaneous native DOM manipulation replaces heavy performance layout flushing innerHTML loops
+                div.addEventListener('click', () => toggleMutation(item.id));
+                grid.appendChild(div);
             });
         }
 
         function toggleMutation(id) {
-            // Radio button behavior: Clear out the old selection first
-            if (selectedMutationId && selectedMutationId !== id) {
-                const oldRow = document.getElementById(`mutrow-${selectedMutationId}`);
-                if (oldRow) oldRow.classList.remove('selected');
-            }
-
-            const row = document.getElementById(`mutrow-${id}`);
+            const currentSelected = document.getElementById(`mutrow-${id}`);
+            
             if (selectedMutationId === id) {
-                // If clicking the already active mutation, toggle it completely off
+                currentSelected.classList.remove('selected');
                 selectedMutationId = null;
-                row.classList.remove('selected');
             } else {
+                if (selectedMutationId) {
+                    const previousSelected = document.getElementById(`mutrow-${selectedMutationId}`);
+                    if (previousSelected) previousSelected.classList.remove('selected');
+                }
+                currentSelected.classList.add('selected');
                 selectedMutationId = id;
-                row.classList.add('selected');
             }
             globalInputsUpdated();
         }
@@ -440,11 +453,11 @@
             
             if (grid.classList.contains('collapsed')) {
                 grid.classList.remove('collapsed');
-                searchWrapper.style.display = 'flex';
+                searchWrapper.style.visibility = 'visible';
                 btn.innerText = 'Hide List';
             } else {
                 grid.classList.add('collapsed');
-                searchWrapper.style.display = 'none';
+                searchWrapper.style.visibility = 'hidden';
                 btn.innerText = 'Show List';
             }
         }
