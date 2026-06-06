@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brainrot Calculator</title>
+    <title>Ultimate Brainrot Tool Suite</title>
     <style>
         :root {
             --bg-main: #0a0503;
@@ -37,7 +37,6 @@
             overflow-x: auto;
         }
 
-        /* Pinned Left Sidebar for Themes */
         .theme-sidebar {
             width: 220px;
             min-width: 220px;
@@ -53,18 +52,11 @@
             position: sticky;
             top: 0;
             overflow-y: auto;
-            transition: background var(--transition-speed) ease, border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
         }
 
-        .theme-sidebar::-webkit-scrollbar {
-            width: 4px;
-        }
-        .theme-sidebar::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.05);
-            border-radius: 4px;
-        }
+        .theme-sidebar::-webkit-scrollbar { width: 4px; }
+        .theme-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 4px; }
 
-        /* Set Default Theme Button */
         .btn-set-default {
             width: 100%;
             padding: 10px 12px;
@@ -78,20 +70,15 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             margin-bottom: 15px;
-            transition: all 0.2s ease;
-            box-sizing: border-box;
             text-align: center;
+            box-sizing: border-box;
         }
 
-        .btn-set-default:hover {
-            background-color: var(--border-glow);
-            color: var(--bg-main);
-        }
+        .btn-set-default:hover { background-color: var(--border-glow); color: var(--bg-main); }
 
-        /* Main Workspace Layout */
         .workspace-layout {
             display: grid;
-            grid-template-columns: 240px minmax(550px, 1fr) 320px;
+            grid-template-columns: 280px minmax(550px, 1fr) 320px;
             gap: 25px;
             padding: 40px 30px;
             flex-grow: 1;
@@ -101,54 +88,23 @@
         }
 
         @media (max-width: 1300px) {
-            body {
-                flex-direction: column;
-                overflow-x: visible;
-            }
-            .theme-sidebar {
-                width: 100%;
-                min-width: 100%;
-                height: auto;
-                position: relative;
-                border-right: none;
-                border-bottom: var(--card-border);
-                padding: 20px;
-                flex-direction: row;
-                flex-wrap: wrap;
-                align-items: center;
-            }
-            .btn-set-default {
-                width: auto;
-                margin-bottom: 0;
-                margin-left: auto;
-                padding: 12px 16px;
-            }
-            .workspace-layout {
-                grid-template-columns: 1fr;
-                width: 100%;
-                min-width: 100%;
-                padding: 20px;
-            }
+            body { flex-direction: column; overflow-x: visible; }
+            .theme-sidebar { width: 100%; min-width: 100%; height: auto; position: relative; border-right: none; border-bottom: var(--card-border); padding: 20px; flex-direction: row; flex-wrap: wrap; align-items: center; }
+            .btn-set-default { width: auto; margin-bottom: 0; margin-left: auto; padding: 12px 16px; }
+            .workspace-layout { grid-template-columns: 1fr; width: 100%; min-width: 100%; padding: 20px; }
         }
 
-        .calculator-card, .saved-card, .mutations-card {
+        .calculator-card, .saved-card, .mutations-card, .rot-card {
             background: var(--bg-card);
             border: var(--card-border);
             border-radius: 20px;
             padding: 30px;
             box-shadow: var(--card-shadow);
             height: fit-content;
-            transition: background var(--transition-speed) ease, border-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
         }
 
-        .mutations-card {
-            padding: 20px;
-        }
-
-        /* Prevent Calculator Squeezing */
-        .calculator-card {
-            min-width: 500px;
-        }
+        .mutations-card { padding: 20px; }
+        .calculator-card { min-width: 500px; }
 
         h2 {
             margin-top: 0;
@@ -163,17 +119,6 @@
             width: 100%;
         }
 
-        @media (max-width: 1300px) {
-            .theme-sidebar h2 {
-                margin-bottom: 10px;
-                border-bottom: none;
-                padding-bottom: 0;
-                width: auto;
-                margin-right: 20px;
-            }
-        }
-
-        /* Themes Button Styling */
         .theme-btn {
             width: 100%;
             padding: 12px 14px;
@@ -188,543 +133,265 @@
             align-items: center;
             gap: 12px;
             box-sizing: border-box;
-            transition: all 0.2s ease;
         }
 
-        @media (max-width: 1300px) {
-            .theme-btn {
-                width: auto;
-            }
-        }
+        .theme-btn:hover { border-color: var(--border-glow); background: rgba(255, 255, 255, 0.02); }
+        .theme-btn.active { border-color: var(--border-glow); background: rgba(255, 255, 255, 0.05); }
+        .theme-dot { width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 8px currentColor; flex-shrink: 0; }
 
-        .theme-btn:hover {
-            border-color: var(--border-glow);
-            background: rgba(255, 255, 255, 0.02);
-            transform: translateX(4px);
-        }
+        .mutation-grid { display: grid; grid-template-columns: 1fr; gap: 8px; max-height: 520px; overflow-y: auto; padding-right: 4px; }
+        .mutation-grid::-webkit-scrollbar { width: 4px; }
+        .mutation-grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
 
-        @media (max-width: 1300px) {
-            .theme-btn:hover {
-                transform: translateY(-2px);
-            }
-        }
+        .mutation-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: rgba(0, 0, 0, 0.15); border-radius: 10px; font-size: 13px; border: 1px solid rgba(255, 255, 255, 0.02); cursor: pointer; user-select: none; }
+        .mutation-row:hover { background: rgba(255, 255, 255, 0.02); border-color: rgba(255, 255, 255, 0.08); }
+        .mutation-row.selected { border-color: var(--border-glow); background: rgba(255, 170, 0, 0.04); }
+        .mutation-cb { appearance: none; width: 16px; height: 16px; border: 2px solid var(--text-muted); border-radius: 4px; display: flex; align-items: center; justify-content: center; }
+        .mutation-row.selected .mutation-cb { border-color: var(--border-glow); background: var(--border-glow); }
+        .mutation-row.selected .mutation-cb::after { content: '✓'; color: var(--bg-main); font-size: 11px; font-weight: 900; }
+        .mutation-name { font-weight: 600; text-transform: capitalize; flex-grow: 1; }
+        .mutation-value { font-family: monospace; color: var(--text-accent); font-weight: 700; }
 
-        .theme-btn.active {
-            border-color: var(--border-glow);
-            background: rgba(255, 255, 255, 0.05);
-            box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.03);
-        }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .input-group { margin-bottom: 20px; position: relative; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 13px; text-transform: uppercase; color: var(--text-muted); }
+        input, select { width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.08); background-color: var(--bg-input); color: var(--text-main); font-size: 16px; font-weight: 500; box-sizing: border-box; }
+        input:focus, select:focus { outline: none; border-color: var(--border-glow); box-shadow: 0 0 12px rgba(255, 170, 0, 0.15); }
 
-        .theme-dot {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            box-shadow: 0 0 8px currentColor;
-            flex-shrink: 0;
-        }
+        .btn-flex { display: flex; gap: 15px; margin-top: 25px; }
+        button.action-btn { padding: 16px 24px; color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; text-transform: uppercase; flex: 1; }
+        .btn-calc { background-color: var(--btn-success); flex: 2; }
+        .btn-save { background-color: var(--btn-primary); }
 
-        /* Mutation List Style */
-        .mutation-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 8px;
-            max-height: 480px;
-            overflow-y: auto;
-            padding-right: 4px;
-        }
+        #results { margin-top: 30px; padding: 20px; background-color: rgba(0, 0, 0, 0.2); border-top: 1px dashed rgba(255, 255, 255, 0.08); border-bottom: 1px dashed rgba(255, 255, 255, 0.08); display: none; }
+        .res-grid-mini { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px 24px; }
 
-        .mutation-grid::-webkit-scrollbar {
-            width: 4px;
-        }
-        .mutation-grid::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.1);
-            border-radius: 4px;
-        }
+        .mini-stat-box { display: flex; flex-direction: column; }
+        .mini-label { font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; font-weight: 600; }
+        .mini-val { font-size: 15px; font-weight: 700; font-family: monospace; color: var(--text-main); }
 
-        .mutation-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 8px 12px;
-            background: rgba(0, 0, 0, 0.15);
-            border-radius: 8px;
-            font-size: 13px;
-            border: 1px solid rgba(255, 255, 255, 0.02);
-        }
+        .saved-list { margin-top: 5px; max-height: 550px; overflow-y: auto; padding-right: 4px; }
+        .saved-item { background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(255, 255, 255, 0.03); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
+        .saved-title-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .saved-title { color: var(--border-glow); font-weight: 700; background: transparent; border: none; border-bottom: 1px solid transparent; font-size: 14px; width: 80%; }
+        .btn-del { background: transparent; border: 1px solid rgba(231, 76, 60, 0.3); color: var(--btn-danger); border-radius: 8px; width: 26px; height: 26px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
-        .mutation-name {
-            font-weight: 600;
-            text-transform: capitalize;
-        }
+        .saved-stats { font-size: 12px; color: var(--text-main); display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px; }
+        .saved-stats span { font-family: monospace; font-weight: bold; }
 
-        .mutation-value {
-            font-family: 'JetBrains Mono', 'Fira Code', monospace;
-            color: var(--text-accent);
-            font-weight: 700;
-        }
+        .rot-card { grid-column: 1 / -1; margin-top: 10px; }
+        .list-header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; gap: 20px; flex-wrap: wrap; }
+        .search-controls-wrapper { display: flex; gap: 15px; flex-grow: 1; justify-content: flex-end; max-width: 600px; width: 100%; }
+        .search-input { padding: 10px 14px; font-size: 14px; border-radius: 10px; flex-grow: 2; }
+        .filter-select { width: auto; min-width: 180px; padding: 10px 14px; font-size: 14px; border-radius: 10px; flex-grow: 1; }
+        .rot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 20px; }
+        .rot-item { background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+        .rot-header { display: flex; justify-content: space-between; align-items: center; }
+        .rot-name { font-weight: 700; font-size: 14px; color: var(--text-main); }
+        .rot-badge { font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 6px; text-transform: uppercase; }
 
-        /* Form Controls */
-        .grid-2 {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
+        .badge-noobini { background: rgba(166, 146, 133, 0.1); color: #a69285; border: 1px solid rgba(166, 146, 133, 0.2); }
+        .badge-rare { background: rgba(52, 152, 219, 0.1); color: #3498db; border: 1px solid rgba(52, 152, 219, 0.2); }
+        .badge-epic { background: rgba(155, 89, 182, 0.1); color: #9b59b6; border: 1px solid rgba(155, 89, 182, 0.2); }
+        .badge-legendary { background: rgba(241, 196, 15, 0.1); color: #f1c40f; border: 1px solid rgba(241, 196, 15, 0.2); }
+        .badge-mythic { background: rgba(230, 126, 34, 0.1); color: #e67e22; border: 1px solid rgba(230, 126, 34, 0.2); }
+        .badge-godly { background: rgba(231, 76, 60, 0.1); color: #e74c3c; border: 1px solid rgba(231, 76, 60, 0.2); }
+        .badge-secret { background: rgba(0, 255, 204, 0.1); color: #00ffcc; border: 1px solid rgba(0, 255, 204, 0.2); }
+        .badge-divine { background: rgba(255, 0, 255, 0.1); color: #ff00ff; border: 1px solid rgba(255, 0, 255, 0.2); }
+        .badge-hacked { background: rgba(118, 255, 3, 0.1); color: #76ff03; border: 1px solid rgba(118, 255, 3, 0.2); }
+        .badge-og { background: rgba(234, 32, 39, 0.1); color: #ea2027; border: 1px solid rgba(234, 32, 39, 0.2); }
+        .badge-celestial { background: rgba(0, 210, 211, 0.1); color: #00d2d1; border: 1px solid rgba(0, 210, 211, 0.2); }
+        .badge-eternal { background: rgba(253, 121, 168, 0.1); color: #fd79a8; border: 1px solid rgba(253, 121, 168, 0.2); }
 
-        .input-group {
-            margin-bottom: 20px;
-            position: relative;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--text-muted);
-        }
-
-        input {
-            width: 100%;
-            padding: 14px 16px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            background-color: var(--bg-input);
-            color: var(--text-main);
-            font-size: 16px;
-            font-weight: 500;
-            box-sizing: border-box;
-            transition: all 0.2s ease;
-        }
-
-        input:focus {
-            outline: none;
-            border-color: var(--border-glow);
-            background-color: rgba(0,0,0,0.2);
-            box-shadow: 0 0 12px rgba(255, 170, 0, 0.15);
-        }
-
-        .help-text {
-            font-size: 11px;
-            color: var(--text-muted);
-            margin-top: 5px;
-            opacity: 0.8;
-        }
-
-        /* Action Buttons */
-        .btn-flex {
-            display: flex;
-            gap: 15px;
-            margin-top: 25px;
-        }
-
-        button.action-btn {
-            padding: 16px 24px;
-            color: white;
-            border: none;
-            border-radius: 12px;
-            font-size: 15px;
-            font-weight: 700;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.2s ease;
-        }
-
-        .btn-calc {
-            background-color: var(--btn-success);
-            flex: 2;
-        }
-        .btn-calc:hover { 
-            background-color: var(--btn-success-hover); 
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(46, 204, 113, 0.25);
-        }
-
-        .btn-save {
-            background-color: var(--btn-primary);
-            flex: 1;
-        }
-        .btn-save:hover { 
-            background-color: var(--btn-primary-hover); 
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(52, 152, 219, 0.25);
-        }
-
-        /* Minimalist Results Area */
-        #results {
-            margin-top: 30px;
-            padding: 16px 20px;
-            background-color: rgba(0, 0, 0, 0.2);
-            border-top: 1px dashed rgba(255, 255, 255, 0.08);
-            border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
-            display: none;
-        }
-
-        .res-grid-mini {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 16px 24px;
-        }
-
-        @media (max-width: 550px) {
-            .res-grid-mini {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        .mini-stat-box {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .mini-label {
-            font-size: 11px;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: var(--text-muted);
-            margin-bottom: 3px;
-            font-weight: 600;
-        }
-
-        .mini-val {
-            font-size: 15px;
-            font-weight: 700;
-            font-family: 'JetBrains Mono', 'Fira Code', monospace;
-            color: var(--text-main);
-        }
-
-        /* Saved Cards Area */
-        .saved-list {
-            margin-top: 5px;
-            max-height: 550px;
-            overflow-y: auto;
-            padding-right: 4px;
-        }
-
-        .saved-list::-webkit-scrollbar {
-            width: 6px;
-        }
-        .saved-list::-webkit-scrollbar-thumb {
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-        }
-
-        .saved-item {
-            background: rgba(0, 0, 0, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.03);
-            border-radius: 14px;
-            padding: 16px;
-            margin-bottom: 16px;
-            transition: border-color 0.2s ease;
-        }
-        .saved-item:hover {
-            border-color: rgba(255, 255, 255, 0.08);
-        }
-
-        .saved-title-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .saved-title {
-            color: var(--border-glow);
-            font-weight: 700;
-            background: transparent;
-            border: none;
-            border-bottom: 1px solid transparent;
-            font-size: 14px;
-            padding: 2px 0;
-            width: 80%;
-        }
-
-        .saved-title:focus {
-            border-bottom-color: var(--text-accent);
-            outline: none;
-        }
-
-        .btn-del {
-            background: transparent;
-            border: 1px solid rgba(231, 76, 60, 0.3);
-            color: var(--btn-danger);
-            border-radius: 8px;
-            width: 26px;
-            height: 26px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-
-        .btn-del:hover {
-            background: var(--btn-danger);
-            color: white;
-            border-color: var(--btn-danger);
-        }
-
-        .saved-stats {
-            font-size: 12px;
-            color: var(--text-main);
-            line-height: 1.5;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4px 8px;
-        }
-
-        .saved-stats div {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .saved-stats span {
-            font-family: monospace;
-            font-weight: bold;
-        }
+        .rot-body-metrics { font-size: 12px; color: var(--text-muted); display: grid; grid-template-columns: 1fr; gap: 5px; background: rgba(0, 0, 0, 0.1); padding: 12px; border-radius: 8px; }
+        .rot-body-metrics div span { font-family: monospace; color: var(--text-main); font-weight: 600; }
     </style>
 </head>
 <body>
 
-    <!-- Column 1: Themes Sidebar (Pinned Layout to Very Left Side) -->
     <div class="theme-sidebar">
         <h2>Themes</h2>
         <button class="btn-set-default" id="setDefaultBtn" onclick="saveDefaultTheme()">Use as Default</button>
-        
-        <button class="theme-btn active" onclick="setTheme('og')" id="theme-og">
-            <span class="theme-dot" style="color:#ffaa00; background:#ffaa00;"></span> OG Cocoa
-        </button>
-        <button class="theme-btn" onclick="setTheme('void')" id="theme-void">
-            <span class="theme-dot" style="color:#bf5fff; background:#bf5fff;"></span> Purple Void
-        </button>
-        <button class="theme-btn" onclick="setTheme('matrix')" id="theme-matrix">
-            <span class="theme-dot" style="color:#00ff00; background:#00ff00;"></span> Matrix Hack
-        </button>
-        <button class="theme-btn" onclick="setTheme('frost')" id="theme-frost">
-            <span class="theme-dot" style="color:#00bfff; background:#00bfff;"></span> Frostbite
-        </button>
-        <button class="theme-btn" onclick="setTheme('crimson')" id="theme-crimson">
-            <span class="theme-dot" style="color:#ff003c; background:#ff003c;"></span> Crimson Demon
-        </button>
-        <button class="theme-btn" onclick="setTheme('cyberpunk')" id="theme-cyberpunk">
-            <span class="theme-dot" style="color:#ff007f; background:#ff007f;"></span> Neon Cyber
-        </button>
-        <button class="theme-btn" onclick="setTheme('luxury')" id="theme-luxury">
-            <span class="theme-dot" style="color:#d4af37; background:#d4af37;"></span> Royal Gold
-        </button>
-        <button class="theme-btn" onclick="setTheme('toxic')" id="theme-toxic">
-            <span class="theme-dot" style="color:#76ff03; background:#76ff03;"></span> Bio Sludge
-        </button>
-        <button class="theme-btn" onclick="setTheme('synthwave')" id="theme-synthwave">
-            <span class="theme-dot" style="color:#ff5e97; background:#ff5e97;"></span> Outrun 1984
-        </button>
-        <button class="theme-btn" onclick="setTheme('mono')" id="theme-mono">
-            <span class="theme-dot" style="color:#ffffff; background:#ffffff;"></span> Minimal Slate
-        </button>
+        <button class="theme-btn active" onclick="setTheme('og')" id="theme-og"><span class="theme-dot" style="color:#ffaa00; background:#ffaa00;"></span> OG Cocoa</button>
+        <button class="theme-btn" onclick="setTheme('void')" id="theme-void"><span class="theme-dot" style="color:#bf5fff; background:#bf5fff;"></span> Purple Void</button>
+        <button class="theme-btn" onclick="setTheme('matrix')" id="theme-matrix"><span class="theme-dot" style="color:#00ff00; background:#00ff00;"></span> Matrix Hack</button>
+        <button class="theme-btn" onclick="setTheme('frost')" id="theme-frost"><span class="theme-dot" style="color:#00bfff; background:#00bfff;"></span> Frostbite</button>
+        <button class="theme-btn" onclick="setTheme('crimson')" id="theme-crimson"><span class="theme-dot" style="color:#ff003c; background:#ff003c;"></span> Crimson Demon</button>
+        <button class="theme-btn" onclick="setTheme('cyberpunk')" id="theme-cyberpunk"><span class="theme-dot" style="color:#ff007f; background:#ff007f;"></span> Neon Cyber</button>
+        <button class="theme-btn" onclick="setTheme('luxury')" id="theme-luxury"><span class="theme-dot" style="color:#d4af37; background:#d4af37;"></span> Royal Gold</button>
+        <button class="theme-btn" onclick="setTheme('toxic')" id="theme-toxic"><span class="theme-dot" style="color:#76ff03; background:#76ff03;"></span> Bio Sludge</button>
+        <button class="theme-btn" onclick="setTheme('synthwave')" id="theme-synthwave"><span class="theme-dot" style="color:#ff5e97; background:#ff5e97;"></span> Outrun 1984</button>
+        <button class="theme-btn" onclick="setTheme('mono')" id="theme-mono"><span class="theme-dot" style="color:#ffffff; background:#ffffff;"></span> Minimal Slate</button>
     </div>
 
-    <!-- Main Content Workspace Container -->
     <div class="workspace-layout">
-        
-        <!-- Column 2: Mutations Tab -->
         <div class="mutations-card">
             <h2>Mutations</h2>
-            <div class="mutation-grid" id="mutationGrid">
-                <!-- Content handled dynamically by JS -->
-            </div>
+            <div class="mutation-grid" id="mutationGrid"></div>
         </div>
 
-        <!-- Column 3: Brainrot Calculator Panel -->
         <div class="calculator-card">
             <h2>Brainrot Calculator</h2>
-            
             <div class="grid-2">
                 <div class="input-group">
-                    <label>Daily Offline Income Pool (Optional)</label>
-                    <input type="text" id="dayInc" value="" placeholder="e.g. 900QN" oninput="liveSaveRebirthAndIncome()">
-                    <div class="help-text">Leave blank to skip time estimations.</div>
+                    <label>Daily Offline Income Pool</label>
+                    <input type="text" id="dayInc" value="" placeholder="e.g. 1.1S" oninput="globalInputsUpdated()">
                 </div>
                 <div class="input-group">
                     <label>Rebirth Multiplier</label>
-                    <input type="number" id="rebirthMulti" value="" placeholder="e.g. 1" min="1" step="0.1" oninput="liveSaveRebirthAndIncome()">
-                    <div class="help-text">Auto-saving field multiplier.</div>
+                    <input type="number" id="rebirthMulti" value="" placeholder="e.g. 1" min="1" step="0.1" oninput="globalInputsUpdated()">
                 </div>
             </div>
-
             <div class="grid-2">
                 <div class="input-group">
-                    <label>Current Brainrot Level</label>
-                    <input type="number" id="curLvl" value="" placeholder="e.g. 50">
+                    <label>Brainrot Current Level</label>
+                    <input type="number" id="curLvl" value="" placeholder="e.g. 1" oninput="globalInputsUpdated()">
                 </div>
                 <div class="input-group">
-                    <label>Target Brainrot Level</label>
-                    <input type="number" id="tarLvl" value="75">
+                    <label>Brainrot Target Level</label>
+                    <input type="number" id="tarLvl" value="75" oninput="globalInputsUpdated()">
                 </div>
             </div>
-
             <div class="grid-2">
                 <div class="input-group">
-                    <label>Income (At Current Level)</label>
-                    <input type="text" id="curInc" value="" placeholder="e.g. 420.3K">
+                    <label>Override Income/s</label>
+                    <input type="text" id="curInc" value="" placeholder="e.g. 420.3K" oninput="globalInputsUpdated()">
                 </div>
                 <div class="input-group">
-                    <label>Upgrade Cost (Optional)</label>
-                    <input type="text" id="curCost" value="" placeholder="e.g. 3.1B">
-                    <div class="help-text">Leave blank to skip cost metrics.</div>
+                    <label>Override Base Cost</label>
+                    <input type="text" id="curCost" value="" placeholder="e.g. 15" oninput="globalInputsUpdated()">
                 </div>
             </div>
-
             <div class="btn-flex">
-                <button class="action-btn btn-calc" onclick="calculate()">Optimize Production</button>
-                <button class="action-btn btn-save" onclick="saveCalculation()">Save Build</button>
+                <button class="action-btn btn-calc" onclick="calculateOverride()">Calculate Manual Entry</button>
+                <button class="action-btn btn-save" onclick="saveOverrideBuild()">Save Build</button>
             </div>
 
-            <!-- Micro Grid Systems Dynamic Results Layout -->
             <div id="results">
                 <div class="res-grid-mini">
-                    <div class="mini-stat-box">
-                        <span class="mini-label">Base Level 1</span>
-                        <span id="resLvl1" class="mini-val" style="color: #ffda79;">-</span>
-                    </div>
-                    <div class="mini-stat-box">
-                        <span class="mini-label">Base Output</span>
-                        <span id="resBaseInc" class="mini-val" style="color: #bdc581;">-</span>
-                    </div>
-                    <div class="mini-stat-box">
-                        <span class="mini-label">Rebirth Mult</span>
-                        <span id="resInc" class="mini-val" style="color: var(--text-accent);">-</span>
-                    </div>
-                    <div class="mini-stat-box">
-                        <span class="mini-label">Daily Gain</span>
-                        <span id="resAddedDaily" class="mini-val" style="color: #2ecc71;">-</span>
-                    </div>
-                    <div class="mini-stat-box">
-                        <span class="mini-label">Total Cost</span>
-                        <span id="resCost" class="mini-val">-</span>
-                    </div>
-                    <div class="mini-stat-box">
-                        <span class="mini-label">Time Req</span>
-                        <span id="resTime" class="mini-val" style="color: var(--border-glow);">-</span>
-                    </div>
+                    <div class="mini-stat-box"><span class="mini-label">Base Level 1</span><span id="resLvl1" class="mini-val" style="color: #ffda79;">-</span></div>
+                    <div class="mini-stat-box"><span class="mini-label">Base Max Lvl</span><span id="resBaseInc" class="mini-val" style="color: #bdc581;">-</span></div>
+                    <div class="mini-stat-box"><span class="mini-label">Max Lvl Rebirth Multi</span><span id="resInc" class="mini-val" style="color: var(--text-accent);">-</span></div>
+                    <div class="mini-stat-box"><span class="mini-label">Daily Gain</span><span id="resAddedDaily" class="mini-val" style="color: #2ecc71;">-</span></div>
+                    <div class="mini-stat-box"><span class="mini-label">Total Cost</span><span id="resCost" class="mini-val">-</span></div>
+                    <div class="mini-stat-box"><span class="mini-label">Time Req</span><span id="resTime" class="mini-val" style="color: var(--border-glow);">-</span></div>
                 </div>
             </div>
         </div>
 
-        <!-- Column 4: Saved Configurations Component Panel -->
         <div class="saved-card">
             <h2>Saved Configurations</h2>
             <div class="saved-list" id="savedList"></div>
         </div>
+
+        <div class="rot-card">
+            <div class="list-header-controls">
+                <h2>Brainrot Upgrades Management Grid</h2>
+                <div class="search-controls-wrapper">
+                    <input type="text" id="searchBar" class="search-input" placeholder="Search upgrade name or rarity..." oninput="renderBrainrotList()">
+                    <select id="rarityFilter" class="filter-select" onchange="renderBrainrotList()">
+                        <option value="all">All Rarities</option>
+                        <option value="noobini">Noobini</option>
+                        <option value="rare">Rare</option>
+                        <option value="epic">Epic</option>
+                        <option value="legendary">Legendary</option>
+                        <option value="mythic">Mythic</option>
+                        <option value="godly">Godly</option>
+                        <option value="secret">Secret</option>
+                        <option value="divine">Divine</option>
+                        <option value="hacked">Hacked</option>
+                        <option value="og">OG</option>
+                        <option value="celestial">Celestial</option>
+                        <option value="eternal">Eternal</option>
+                    </select>
+                </div>
+            </div>
+            <div class="rot-grid" id="rotGrid"></div>
+        </div>
     </div>
 
     <script>
-        const SUFFIXES = {
-            'K': 1e3, 'M': 1e6, 'B': 1e9, 'T': 1e12, 'Q': 1e15, 'QN': 1e18, 'SX': 1e21, 'SP': 1e24, 'O': 1e27, 'N': 1e30, 'D': 1e33
-        };
+        const SUFFIXES = { 'K': 1e3, 'M': 1e6, 'B': 1e9, 'T': 1e12, 'Q': 1e15, 'QN': 1e18, 'S': 1e21, 'SP': 1e24, 'O': 1e27, 'N': 1e30, 'D': 1e33 };
 
         const THEMES = {
-            og: { 
-                main: '#0a0503', card: '#160d07', input: '#26160c', glow: '#ffaa00', accent: '#00ffcc', muted: '#a69285',
-                shadow: '0 12px 40px rgba(0, 0, 0, 0.6)', border: '1px solid rgba(255, 170, 0, 0.04)' 
-            },
-            void: { 
-                main: '#04010a', card: '#0f051c', input: '#1c0b30', glow: '#bf5fff', accent: '#ff7bfb', muted: '#8c7d9e',
-                shadow: '0 12px 40px rgba(191, 95, 255, 0.15)', border: '1px solid rgba(191, 95, 255, 0.08)' 
-            },
-            matrix: { 
-                main: '#000000', card: '#050805', input: '#0d140d', glow: '#00ff00', accent: '#55ff55', muted: '#668866',
-                shadow: '0 0 25px rgba(0, 255, 0, 0.08)', border: '1px solid rgba(0, 255, 0, 0.2)' 
-            },
-            frost: { 
-                main: '#02070a', card: '#08141c', input: '#102430', glow: '#00bfff', accent: '#e0ffff', muted: '#7fa3b5',
-                shadow: '0 12px 40px rgba(0, 191, 255, 0.12)', border: '1px solid rgba(0, 191, 255, 0.15)' 
-            },
-            crimson: { 
-                main: '#080002', card: '#170106', input: '#26030b', glow: '#ff003c', accent: '#ff809b', muted: '#b57f8a',
-                shadow: '0 12px 40px rgba(255, 0, 60, 0.18)', border: '1px solid rgba(255, 0, 60, 0.12)' 
-            },
-            cyberpunk: {
-                main: '#0b0914', card: '#141126', input: '#1e193a', glow: '#ff007f', accent: '#00f6ff', muted: '#777196',
-                shadow: '0 15px 45px rgba(255, 0, 127, 0.2), 0 0 15px rgba(0, 246, 255, 0.05)', border: '1px solid rgba(255, 0, 127, 0.15)'
-            },
-            luxury: {
-                main: '#0d0d0d', card: '#1a1a1a', input: '#262626', glow: '#d4af37', accent: '#ffffff', muted: '#8c8c8c',
-                shadow: '0 25px 55px rgba(0, 0, 0, 0.85), inset 0 1px 0 rgba(212, 175, 55, 0.05)', border: '1px solid rgba(212, 175, 55, 0.25)'
-            },
-            toxic: {
-                main: '#0d0f0c', card: '#161a14', input: '#20261d', glow: '#76ff03', accent: '#eeff41', muted: '#7b8776',
-                shadow: '0 12px 35px rgba(118, 255, 3, 0.12)', border: '1px solid rgba(118, 255, 3, 0.08)'
-            },
-            synthwave: {
-                main: '#1a0933', card: '#271247', input: '#3a1b69', glow: '#ff5e97', accent: '#fefe66', muted: '#a183ca',
-                shadow: '0 12px 40px rgba(255, 94, 151, 0.18)', border: '1px solid rgba(254, 254, 102, 0.12)'
-            },
-            mono: {
-                main: '#161719', card: '#212326', input: '#2b2e33', glow: '#ffffff', accent: '#99aab5', muted: '#72767d',
-                shadow: '0 8px 24px rgba(0, 0, 0, 0.3)', border: '1px solid rgba(255, 255, 255, 0.06)'
-            }
+            og: { main: '#0a0503', card: '#160d07', input: '#26160c', glow: '#ffaa00', accent: '#00ffcc', muted: '#a69285', shadow: '0 12px 40px rgba(0, 0, 0, 0.6)', border: '1px solid rgba(255, 170, 0, 0.04)' },
+            void: { main: '#04010a', card: '#0f051c', input: '#1c0b30', glow: '#bf5fff', accent: '#ff7bfb', muted: '#8c7d9e', shadow: '0 12px 40px rgba(191, 95, 255, 0.15)', border: '1px solid rgba(191, 95, 255, 0.08)' },
+            matrix: { main: '#000000', card: '#050805', input: '#0d140d', glow: '#00ff00', accent: '#55ff55', muted: '#668866', shadow: '0 0 25px rgba(0, 255, 0, 0.08)', border: '1px solid rgba(0, 255, 0, 0.2)' },
+            frost: { main: '#02070a', card: '#08141c', input: '#102430', glow: '#00bfff', accent: '#e0ffff', muted: '#7fa3b5', shadow: '0 12px 40px rgba(0, 191, 255, 0.12)', border: '1px solid rgba(0, 191, 255, 0.15)' },
+            crimson: { main: '#080002', card: '#170106', input: '#26030b', glow: '#ff003c', accent: '#ff809b', muted: '#b57f8a', shadow: '0 12px 40px rgba(255, 0, 60, 0.18)', border: '1px solid rgba(255, 0, 60, 0.12)' },
+            cyberpunk: { main: '#0b0914', card: '#141126', input: '#1e193a', glow: '#ff007f', accent: '#00f6ff', muted: '#777196', shadow: '0 15px 45px rgba(255, 0, 127, 0.2)', border: '1px solid rgba(255, 0, 127, 0.15)' },
+            luxury: { main: '#0d0d0d', card: '#1a1a1a', input: '#262626', glow: '#d4af37', accent: '#ffffff', muted: '#8c8c8c', shadow: '0 25px 55px rgba(0, 0, 0, 0.85)', border: '1px solid rgba(212, 175, 55, 0.25)' },
+            toxic: { main: '#0d0f0c', card: '#161a14', input: '#20261d', glow: '#76ff03', accent: '#eeff41', muted: '#7b8776', shadow: '0 12px 35px rgba(118, 255, 3, 0.12)', border: '1px solid rgba(118, 255, 3, 0.08)' },
+            synthwave: { main: '#1a0933', card: '#271247', input: '#3a1b69', glow: '#ff5e97', accent: '#fefe66', muted: '#a183ca', shadow: '0 12px 40px rgba(255, 94, 151, 0.18)', border: '1px solid rgba(254, 254, 102, 0.12)' },
+            mono: { main: '#161719', card: '#212326', input: '#2b2e33', glow: '#ffffff', accent: '#99aab5', muted: '#72767d', shadow: '0 8px 24px rgba(0, 0, 0, 0.3)', border: '1px solid rgba(255, 255, 255, 0.06)' }
         };
 
         const MUTATIONS_DATA = [
-            { name: 'phantom', val: 35 },
-            { name: 'rainbow', val: 30 },
-            { name: 'bacon', val: 30 },
-            { name: 'alien', val: 22 },
-            { name: 'electrified', val: 16 },
-            { name: 'wet', val: 16 },
-            { name: 'shadow', val: 12 },
-            { name: 'enchanted', val: 12 },
-            { name: 'virus', val: 10 },
-            { name: 'void', val: 10 },
-            { name: 'radioactive', val: 8 },
-            { name: 'molten', val: 6 },
-            { name: 'plasma', val: 4 },
-            { name: 'diamond', val: 2 },
-            { name: 'gold', val: 1.5 }
+            { id: 'm1', name: 'phantom', val: 35 }, { id: 'm2', name: 'rainbow', val: 30 }, { id: 'm3', name: 'bacon', val: 30 },
+            { id: 'm4', name: 'alien', val: 22 }, { id: 'm5', name: 'electrified', val: 16 }, { id: 'm6', name: 'wet', val: 16 },
+            { id: 'm7', name: 'shadow', val: 12 }, { id: 'm8', name: 'enchanted', val: 12 }, { id: 'm9', name: 'virus', val: 10 },
+            { id: 'm10', name: 'void', val: 10 }, { id: 'm11', name: 'radioactive', val: 8 }, { id: 'm12', name: 'molten', val: 6 },
+            { id: 'm13', name: 'plasma', val: 4 }, { id: 'm14', name: 'diamond', val: 2 }, { id: 'm15', name: 'gold', val: 1.5 }
         ];
 
+        const BRAINROT_UPGRADES = [
+            // Noobini
+            { name: "Noobini Pizzanini", rarity: "noobini", baseInc: 2 }, { name: "Lirili Larila", rarity: "noobini", baseInc: 3 }, { name: "Tim Cheese", rarity: "noobini", baseInc: 3 }, { name: "Talpa Di Fero", rarity: "noobini", baseInc: 4 }, { name: "Svinina Bombardino", rarity: "noobini", baseInc: 5 }, { name: "Pipi Kiwi", rarity: "noobini", baseInc: 6 }, { name: "Trippi Troppi", rarity: "noobini", baseInc: 7 }, { name: "Fluriflura", rarity: "noobini", baseInc: 7 },
+            // Rare
+            { name: "Gangster Footera", rarity: "rare", baseInc: 15 }, { name: "Bandito Bobritto", rarity: "rare", baseInc: 17 }, { name: "Boneca Ambalabu", rarity: "rare", baseInc: 17 }, { name: "Ta Ta Ta Ta Sahur", rarity: "rare", baseInc: 18 }, { name: "Ballerina Cappuccina", rarity: "rare", baseInc: 19 }, { name: "Cappuccino Assassino", rarity: "rare", baseInc: 22 }, { name: "Brr Brr Patapim", rarity: "rare", baseInc: 22 }, { name: "Cacto Hipopotamo", rarity: "rare", baseInc: 26 },
+            // Epic
+            { name: "Garamaramam", rarity: "epic", baseInc: 40 }, { name: "Madung", rarity: "epic", baseInc: 44 }, { name: "Waterdino", rarity: "epic", baseInc: 50 }, { name: "Pesto Mortioni", rarity: "epic", baseInc: 52 }, { name: "Pannaburro", rarity: "epic", baseInc: 62 }, { name: "Orcalero", rarity: "epic", baseInc: 66 }, { name: "Mangolini Parrocini", rarity: "epic", baseInc: 66 }, { name: "John Pork", rarity: "epic", baseInc: 72 }, { name: "Gattatino Nyanino", rarity: "epic", baseInc: 76 },
+            // Legendary
+            { name: "Chimpanzini Bananini", rarity: "legendary", baseInc: 100 }, { name: "Plan Red", rarity: "legendary", baseInc: 130 }, { name: "Plan Blue", rarity: "legendary", baseInc: 140 }, { name: "Capi Taco", rarity: "legendary", baseInc: 150 }, { name: "Bambini Crostini", rarity: "legendary", baseInc: 180 }, { name: "Trulimero Trulicina", rarity: "legendary", baseInc: 160 }, { name: "Elefantucci Bananucci", rarity: "legendary", baseInc: 170 }, { name: "Bananita Dolphinita", rarity: "legendary", baseInc: 210 }, { name: "Salamino Penguino", rarity: "legendary", baseInc: 230 },
+            // Mythic
+            { name: "Penguino Cocosino", rarity: "mythic", baseInc: 450 }, { name: "67", rarity: "mythic", baseInc: 500 }, { name: "Burbaloni Lulliloli", rarity: "mythic", baseInc: 550 }, { name: "Chef Crabracadabra", rarity: "mythic", baseInc: 600 }, { name: "Capybara Eggplant", rarity: "mythic", baseInc: 650 }, { name: "Bangello", rarity: "mythic", baseInc: 725 }, { name: "Elefanto Frigo", rarity: "mythic", baseInc: 775 }, { name: "Rinoccio Verdini", rarity: "mythic", baseInc: 880 }, { name: "Glorbo Fruttodrilo", rarity: "mythic", baseInc: 920 },
+            // Godly
+            { name: "Udin Din Din Dun", rarity: "godly", baseInc: 1800 }, { name: "Pandaccini Bananini", rarity: "godly", baseInc: 2000 }, { name: "Waterino", rarity: "godly", baseInc: 2100 }, { name: "Strawberreli Flamingelli", rarity: "godly", baseInc: 2300 }, { name: "Sigma Boy", rarity: "godly", baseInc: 2400 }, { name: "Frigo Camelo", rarity: "godly", baseInc: 2600 }, { name: "Orangutini Ananasini", rarity: "godly", baseInc: 2700 }, { name: "Rhino Toasterino", rarity: "godly", baseInc: 2800 }, { name: "Bombardiro Crocodilo", rarity: "godly", baseInc: 3100 },
+            // Secret
+            { name: "Bombini Gusini", rarity: "secret", baseInc: 4700 }, { name: "Castlino Fortini", rarity: "secret", baseInc: 5000 }, { name: "Tuff Toucan", rarity: "secret", baseInc: 5300 }, { name: "Fryuro", rarity: "secret", baseInc: 5800 }, { name: "Burguro", rarity: "secret", baseInc: 6200 }, { name: "Guest666", rarity: "secret", baseInc: 7000 }, { name: "Zibra Zubra Zibralini", rarity: "secret", baseInc: 7700 }, { name: "Cavallo Virtuoso", rarity: "secret", baseInc: 8500 }, { name: "Gorillo Watermelondrillo", rarity: "secret", baseInc: 9500 }, { name: "Cocofanto Elefanto", rarity: "secret", baseInc: 10000 }, { name: "Bambu Sahur", rarity: "secret", baseInc: 12500 },
+            // Divine
+            { name: "WL", rarity: "divine", baseInc: 15000 }, { name: "Girafa Celeste", rarity: "divine", baseInc: 16000 }, { name: "Tralalero Tralala", rarity: "divine", baseInc: 17500 }, { name: "Tralalerita Tralala", rarity: "divine", baseInc: 18000 }, { name: "Peant Jarro", rarity: "divine", baseInc: 19500 }, { name: "Dipperl Chiperini", rarity: "divine", baseInc: 20000 }, { name: "Rexosaurus", rarity: "divine", baseInc: 22500 }, { name: "1x1x1x1", rarity: "divine", baseInc: 23000 }, { name: "Matteo", rarity: "divine", baseInc: 25000 }, { name: "Espresso Signora", rarity: "divine", baseInc: 27500 },
+            // Hacked
+            { name: "Alessio", rarity: "hacked", baseInc: 27500 }, { name: "Tripi Tropi Tropa Tripa", rarity: "hacked", baseInc: 28000 }, { name: "Swag Soda", rarity: "hacked", baseInc: 29000 }, { name: "Stoppo Luminino", rarity: "hacked", baseInc: 30000 }, { name: "Torrtuginni Dragonfrutini", rarity: "hacked", baseInc: 32000 }, { name: "Tictac Sahur", rarity: "hacked", baseInc: 38000 }, { name: "Cactus Pingo", rarity: "hacked", baseInc: 44500 }, { name: "Los Primos Blue", rarity: "hacked", baseInc: 44500 }, { name: "La Vacca Saturno Saturnita", rarity: "hacked", baseInc: 48500 }, { name: "Agarrini La Palini", rarity: "hacked", baseInc: 53500 }, { name: "Bottellini", rarity: "hacked", baseInc: 75000 },
+            // OG
+            { name: "Karkerkar Kurkur", rarity: "og", baseInc: 120000 }, { name: "Blackhole Goat", rarity: "og", baseInc: 125000 }, { name: "Compactoroni Daskaloni", rarity: "og", baseInc: 135000 }, { name: "Cappuccino Clownino", rarity: "og", baseInc: 140000 }, { name: "Nuclearo Dinossauro", rarity: "og", baseInc: 190000 }, { name: "Los Noo My Hotspotsitos", rarity: "og", baseInc: 200000 }, { name: "Chillin Chilli", rarity: "og", baseInc: 220000 }, { name: "Crazylone Pizaione", rarity: "og", baseInc: 225000 }, { name: "Corn Sahur", rarity: "og", baseInc: 225000 }, { name: "Meowl", rarity: "og", baseInc: 275000 }, { name: "Strawberry Elephant", rarity: "og", baseInc: 420000 },
+            // Celestial
+            { name: "Dragonfrutina Dolphinita", rarity: "celestial", baseInc: 475000 }, { name: "Guerriro Digitale", rarity: "celestial", baseInc: 490000 }, { name: "Chicleteira Bicicleteira", rarity: "celestial", baseInc: 500000 }, { name: "Pot Hotspot", rarity: "celestial", baseInc: 525000 }, { name: "Krupuk Pagi Pagi", rarity: "celestial", baseInc: 540000 }, { name: "Beluga Beluga", rarity: "celestial", baseInc: 575000 }, { name: "Tralaledon", rarity: "celestial", baseInc: 625000 }, { name: "Anpali Babel", rarity: "celestial", baseInc: 750000 }, { name: "Ketchuru and Musturu", rarity: "celestial", baseInc: 800000 }, { name: "Los Primos", rarity: "celestial", baseInc: 800000 }, { name: "Mastodontico Telepiedone", rarity: "celestial", baseInc: 850000 },
+            // Eternal
+            { name: "Ketupat Kepat", rarity: "eternal", baseInc: 1000000 }, { name: "Professora 67", rarity: "eternal", baseInc: 1000000 }, { name: "Astro Tim", rarity: "eternal", baseInc: 1100000 }, { name: "Baba Yaga", rarity: "eternal", baseInc: 1200000 }, { name: "Kicky", rarity: "eternal", baseInc: 1400000 }
+        ];
+
+        let activeMutations = new Set();
         let savedBuilds = [];
         let currentlySelectedTheme = 'og';
 
-        const SAVE_KEY_INCOME   = 'brainrot_ui_income_v4';
-        const SAVE_KEY_REBIRTH  = 'brainrot_ui_rebirth_v4';
-        const SAVE_KEY_BUILDS   = 'brainrot_ui_builds_v4';
-        const SAVE_KEY_THEME    = 'brainrot_ui_theme_v4';
+        const SAVE_KEY_INCOME   = 'brainrot_v6_income';
+        const SAVE_KEY_REBIRTH  = 'brainrot_v6_rebirth';
+        const SAVE_KEY_BUILDS   = 'brainrot_v6_builds';
+        const SAVE_KEY_THEME    = 'brainrot_v6_theme';
 
         window.onload = function() {
             let savedIncome = localStorage.getItem(SAVE_KEY_INCOME);
             if (savedIncome) document.getElementById('dayInc').value = savedIncome;
-
             let savedRebirth = localStorage.getItem(SAVE_KEY_REBIRTH);
             if (savedRebirth) document.getElementById('rebirthMulti').value = savedRebirth;
             
             let storedBuilds = localStorage.getItem(SAVE_KEY_BUILDS);
-            if (storedBuilds) {
-                savedBuilds = JSON.parse(storedBuilds);
-                renderSavedBuilds();
-            }
-
+            if (storedBuilds) { savedBuilds = JSON.parse(storedBuilds); renderSavedBuilds(); }
             let savedTheme = localStorage.getItem(SAVE_KEY_THEME);
-            if (savedTheme && THEMES[savedTheme]) {
-                setTheme(savedTheme);
-            } else {
-                setTheme('og');
-            }
+            if (savedTheme && THEMES[savedTheme]) setTheme(savedTheme); else setTheme('og');
 
-            renderMutations();
+            renderMutationsList();
+            renderBrainrotList();
         };
 
-        function renderMutations() {
+        function renderMutationsList() {
             const grid = document.getElementById('mutationGrid');
             grid.innerHTML = '';
             MUTATIONS_DATA.forEach(item => {
                 grid.innerHTML += `
-                    <div class="mutation-row">
+                    <div class="mutation-row" id="mutrow-${item.id}" onclick="toggleMutation('${item.id}')">
+                        <div class="mutation-cb"></div>
                         <span class="mutation-name">${item.name}</span>
                         <span class="mutation-value">${item.val}x</span>
                     </div>
@@ -732,16 +399,209 @@
             });
         }
 
-        function liveSaveRebirthAndIncome() {
+        function toggleMutation(id) {
+            const row = document.getElementById(`mutrow-${id}`);
+            if (activeMutations.has(id)) { activeMutations.delete(id); row.classList.remove('selected'); }
+            else { activeMutations.add(id); row.classList.add('selected'); }
+            globalInputsUpdated();
+        }
+
+        function getActiveMutationMultiplier() {
+            let mult = 1;
+            activeMutations.forEach(id => {
+                const item = MUTATIONS_DATA.find(m => m.id === id);
+                if (item) mult *= item.val;
+            });
+            return mult;
+        }
+
+        function globalInputsUpdated() {
+            liveSaveFields();
+            renderBrainrotList();
+            if (document.getElementById('results').style.display === 'block') {
+                calculateOverride();
+            }
+        }
+
+        function renderBrainrotList() {
+            const grid = document.getElementById('rotGrid');
+            const filter = document.getElementById('rarityFilter').value;
+            const query = document.getElementById('searchBar').value.toLowerCase().trim();
+            grid.innerHTML = '';
+
+            let mutationMult = getActiveMutationMultiplier();
+            let rebirthMulti = parseFloat(document.getElementById('rebirthMulti').value) || 1;
+            let targetLvl = parseInt(document.getElementById('tarLvl').value) || 75;
+            let currentLvl = parseInt(document.getElementById('curLvl').value) || 1;
+
+            if (currentLvl >= targetLvl) currentLvl = 1; 
+            let scaleSteps = targetLvl - 1;
+
+            let recordsFound = 0;
+
+            BRAINROT_UPGRADES.forEach(upg => {
+                if (filter !== 'all' && upg.rarity !== filter) return;
+                
+                // Real-time search filter matching name or rarity tags
+                if (query !== '') {
+                    const matchName = upg.name.toLowerCase().includes(query);
+                    const matchRarity = upg.rarity.toLowerCase().includes(query);
+                    if (!matchName && !matchRarity) return;
+                }
+
+                recordsFound++;
+
+                let rawBaseLvl1 = upg.baseInc * mutationMult;
+                let rawRebirthLvl1 = rawBaseLvl1 * rebirthMulti;
+                let rawBaseMax = rawBaseLvl1 * Math.pow(1.25, scaleSteps);
+                let rawRebirthMax = rawBaseMax * rebirthMulti;
+
+                grid.innerHTML += `
+                    <div class="rot-item">
+                        <div class="rot-header">
+                            <span class="rot-name">${upg.name}</span>
+                            <span class="rot-badge badge-${upg.rarity}">${upg.rarity}</span>
+                        </div>
+                        <div class="rot-body-metrics">
+                            <div>Base Level 1: <span>${formatOutput(rawBaseLvl1)}/s</span></div>
+                            <div>Rebirth Multi Base Level 1: <span style="color:var(--text-accent);">${formatOutput(rawRebirthLvl1)}/s</span></div>
+                            <div>Base Max Lvl (Lvl ${targetLvl}): <span>${formatOutput(rawBaseMax)}/s</span></div>
+                            <div>Max Lvl Rebirth Multi (Lvl ${targetLvl}): <span style="color:#2ecc71;">${formatOutput(rawRebirthMax)}/s</span></div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            if (recordsFound === 0) {
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px; opacity: 0.6;">No brainrots match your criteria.</div>`;
+            }
+        }
+
+        function runOverrideMath() {
+            let curLvl = parseInt(document.getElementById('curLvl').value);
+            let tarLvl = parseInt(document.getElementById('tarLvl').value);
+            let rawDailyIncome = parseInput(document.getElementById('dayInc').value);
+            let rawCurIncome = parseInput(document.getElementById('curInc').value);
+            let rawCurCost = parseInput(document.getElementById('curCost').value);
+            let rebirthMulti = parseFloat(document.getElementById('rebirthMulti').value) || 1;
+
+            if (isNaN(curLvl) || isNaN(tarLvl) || rawCurIncome <= 0 || curLvl >= tarLvl) return null;
+
+            let totalCost = 0;
+            let tempCost = rawCurCost;
+            let growthFactor = 1;
+
+            for (let i = 0; i < (tarLvl - curLvl); i++) {
+                if (rawCurCost > 0) { totalCost += tempCost; tempCost *= 1.5; }
+                growthFactor *= 1.25;
+            }
+
+            let baseLvl1Stat = rawCurIncome / Math.pow(1.25, (curLvl - 1));
+            let baseIncNoMulti = rawCurIncome * growthFactor; 
+            let finalOutputWithRebirth = baseIncNoMulti * rebirthMulti;
+            let currentOutputWithRebirth = rawCurIncome * rebirthMulti;
+            let dailyNetAddedValue = (finalOutputWithRebirth - currentOutputWithRebirth) * 86400;
+
+            let timeString = "N/A";
+            if (rawDailyIncome > 0 && rawCurCost > 0) {
+                let timeHours = totalCost / (rawDailyIncome / 24.0);
+                timeString = timeHours < 0.01 ? "Instant" : timeHours < 1 ? (timeHours * 60).toFixed(1) + " mins" : timeHours > 24 ? (timeHours / 24).toFixed(1) + " days" : timeHours.toFixed(1) + " hours";
+            }
+
+            return {
+                label: `Lvl ${curLvl} → Lvl ${tarLvl} Build`,
+                lvl1Base: formatOutput(baseLvl1Stat) + "/s",
+                baseInc: formatOutput(baseIncNoMulti) + "/s",
+                finalInc: formatOutput(finalOutputWithRebirth) + "/s",
+                addedDaily: "+" + formatOutput(dailyNetAddedValue),
+                totalCost: rawCurCost > 0 ? formatOutput(totalCost) : "N/A",
+                timeReq: timeString
+            };
+        }
+
+        function calculateOverride() {
+            let res = runOverrideMath();
+            if (!res) return;
+            document.getElementById('resLvl1').innerText = res.lvl1Base;
+            document.getElementById('resBaseInc').innerText = res.baseInc;
+            document.getElementById('resInc').innerText = res.finalInc;
+            document.getElementById('resAddedDaily').innerText = res.addedDaily;
+            document.getElementById('resCost').innerText = res.totalCost;
+            document.getElementById('resTime').innerText = res.timeReq;
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function saveOverrideBuild() {
+            let data = runOverrideMath();
+            if (!data) return;
+            savedBuilds.push(data);
+            localStorage.setItem(SAVE_KEY_BUILDS, JSON.stringify(savedBuilds));
+            renderSavedBuilds();
+        }
+
+        function liveSaveFields() {
             localStorage.setItem(SAVE_KEY_INCOME, document.getElementById('dayInc').value);
             localStorage.setItem(SAVE_KEY_REBIRTH, document.getElementById('rebirthMulti').value);
+        }
+
+        function parseInput(valStr) {
+            if (!valStr) return 0;
+            valStr = valStr.toUpperCase().replace(/[\s,$]/g, '');
+            for (let suffix of ['QN', 'SP']) {
+                if (valStr.endsWith(suffix)) return parseFloat(valStr.slice(0, -suffix.length)) * SUFFIXES[suffix];
+            }
+            let lastChar = valStr.slice(-1);
+            if (SUFFIXES[lastChar]) return parseFloat(valStr.slice(0, -1)) * SUFFIXES[lastChar];
+            return parseFloat(valStr) || 0;
+        }
+
+        function formatOutput(num) {
+            if (num === 0) return '0';
+            if (num < 1000) return num.toFixed(2).replace(/\.00$/, '');
+            let sortedKeys = Object.keys(SUFFIXES).sort((a, b) => SUFFIXES[b] - SUFFIXES[a]);
+            for (let key of sortedKeys) {
+                if (num >= SUFFIXES[key]) return (num / SUFFIXES[key]).toFixed(2).replace(/\.00$/, '') + key;
+            }
+            return num.toFixed(2).replace(/\.00$/, '');
+        }
+
+        function deleteBuild(index) {
+            savedBuilds.splice(index, 1);
+            localStorage.setItem(SAVE_KEY_BUILDS, JSON.stringify(savedBuilds));
+            renderSavedBuilds();
+        }
+
+        function renderSavedBuilds() {
+            const list = document.getElementById('savedList');
+            list.innerHTML = '';
+            if (savedBuilds.length === 0) {
+                list.innerHTML = '<div style="color:var(--text-muted); text-align:center; font-size:14px; margin-top:30px; opacity: 0.6;">No configurations saved yet.</div>';
+                return;
+            }
+            savedBuilds.forEach((build, index) => {
+                list.innerHTML += `
+                    <div class="saved-item">
+                        <div class="saved-title-container">
+                            <input class="saved-title" type="text" value="${build.label}" oninput="savedBuilds[${index}].label=this.value; localStorage.setItem(SAVE_KEY_BUILDS, JSON.stringify(savedBuilds));">
+                            <button class="btn-del" onclick="deleteBuild(${index})">✕</button>
+                        </div>
+                        <div class="saved-stats">
+                            <div>Base Level 1: <span>${build.lvl1Base}</span></div>
+                            <div>Base Max Lvl: <span>${build.baseInc}</span></div>
+                            <div>Max Lvl Rebirth Multi: <span style="color:var(--text-accent);">${build.finalInc}</span></div>
+                            <div>Daily Gain: <span style="color:#2ecc71;">${build.addedDaily}</span></div>
+                            <div>Cost: <span>${build.totalCost}</span></div>
+                            <div>Time: <span style="color:var(--border-glow);">${build.timeReq}</span></div>
+                        </div>
+                    </div>
+                `;
+            });
         }
 
         function setTheme(themeKey) {
             currentlySelectedTheme = themeKey;
             const theme = THEMES[themeKey];
             const root = document.documentElement;
-            
             root.style.setProperty('--bg-main', theme.main);
             root.style.setProperty('--bg-card', theme.card);
             root.style.setProperty('--bg-input', theme.input);
@@ -758,165 +618,9 @@
 
         function saveDefaultTheme() {
             localStorage.setItem(SAVE_KEY_THEME, currentlySelectedTheme);
-            
             const defBtn = document.getElementById('setDefaultBtn');
-            const originalText = defBtn.innerText;
             defBtn.innerText = '✓ Default Set!';
-            defBtn.style.borderColor = 'var(--btn-success)';
-            defBtn.style.color = 'var(--btn-success)';
-            
-            setTimeout(() => {
-                defBtn.innerText = originalText;
-                defBtn.style.borderColor = '';
-                defBtn.style.color = '';
-            }, 2000);
-        }
-
-        function parseInput(valStr) {
-            if (!valStr) return 0;
-            valStr = valStr.toUpperCase().replace(/[\s,$]/g, '');
-            for (let suffix of ['QN', 'SX', 'SP']) {
-                if (valStr.endsWith(suffix)) {
-                    return parseFloat(valStr.slice(0, -suffix.length)) * SUFFIXES[suffix];
-                }
-            }
-            let lastChar = valStr.slice(-1);
-            if (SUFFIXES[lastChar]) {
-                return parseFloat(valStr.slice(0, -1)) * SUFFIXES[lastChar];
-            }
-            return parseFloat(valStr) || 0;
-        }
-
-        function formatOutput(num) {
-            if (num === 0) return '0';
-            if (num < 1000) return num.toFixed(2).replace(/\.00$/, '');
-            let sortedKeys = Object.keys(SUFFIXES).sort((a, b) => SUFFIXES[b] - SUFFIXES[a]);
-            for (let key of sortedKeys) {
-                if (num >= SUFFIXES[key]) {
-                    return (num / SUFFIXES[key]).toFixed(2).replace(/\.00$/, '') + key;
-                }
-            }
-            return num.toFixed(2).replace(/\.00$/, '');
-        }
-
-        function runMath() {
-            let curLvl = parseInt(document.getElementById('curLvl').value);
-            let tarLvl = parseInt(document.getElementById('tarLvl').value);
-            let rawDailyIncome = parseInput(document.getElementById('dayInc').value);
-            let rawCurIncome = parseInput(document.getElementById('curInc').value);
-            let rawCurCost = parseInput(document.getElementById('curCost').value);
-            let rebirthMulti = parseFloat(document.getElementById('rebirthMulti').value) || 1;
-
-            if (isNaN(curLvl) || isNaN(tarLvl) || rawCurIncome <= 0 || curLvl >= tarLvl) {
-                return null;
-            }
-
-            liveSaveRebirthAndIncome();
-
-            let totalCost = 0;
-            let tempCost = rawCurCost;
-            let tempIncome = rawCurIncome;
-
-            for (let i = 0; i < (tarLvl - curLvl); i++) {
-                if (rawCurCost > 0) {
-                    totalCost += tempCost;
-                    tempCost *= 1.5;
-                }
-                tempIncome *= 1.25;
-            }
-
-            let baseLvl1Stat = rawCurIncome / Math.pow(1.25, (curLvl - 1));
-
-            let baseIncNoMulti = tempIncome; 
-            let finalOutputWithRebirth = tempIncome * rebirthMulti;
-            let currentOutputWithRebirth = rawCurIncome * rebirthMulti;
-
-            let netIncomeIncreasePerSecond = finalOutputWithRebirth - currentOutputWithRebirth;
-            let dailyNetAddedValue = netIncomeIncreasePerSecond * 86400;
-
-            let timeString = "N/A";
-            if (rawDailyIncome > 0 && rawCurCost > 0) {
-                let hourlyIncome = rawDailyIncome / 24.0;
-                let timeHours = totalCost / hourlyIncome;
-                timeString = timeHours < 0.01 ? "Instant" : timeHours < 1 ? (timeHours * 60).toFixed(1) + " mins" : timeHours > 24 ? (timeHours / 24).toFixed(1) + " days" : timeHours.toFixed(1) + " hours";
-            }
-
-            return {
-                label: `Lvl ${curLvl} → ${tarLvl}`,
-                lvl1Base: formatOutput(baseLvl1Stat) + "/s",
-                baseInc: formatOutput(baseIncNoMulti) + "/s",
-                finalInc: formatOutput(finalOutputWithRebirth) + "/s",
-                addedDaily: "+" + formatOutput(dailyNetAddedValue),
-                totalCost: rawCurCost > 0 ? formatOutput(totalCost) : "N/A",
-                timeReq: timeString
-            };
-        }
-
-        function calculate() {
-            let currentCalculation = runMath();
-            if (!currentCalculation) {
-                alert("Please fill out levels and current income fields accurately. Target level must be higher than current level.");
-                return;
-            }
-            document.getElementById('resLvl1').innerText = currentCalculation.lvl1Base;
-            document.getElementById('resBaseInc').innerText = currentCalculation.baseInc;
-            document.getElementById('resInc').innerText = currentCalculation.finalInc;
-            document.getElementById('resAddedDaily').innerText = currentCalculation.addedDaily;
-            document.getElementById('resCost').innerText = currentCalculation.totalCost;
-            document.getElementById('resTime').innerText = currentCalculation.timeReq;
-            document.getElementById('results').style.display = 'block';
-        }
-
-        function saveCalculation() {
-            let data = runMath();
-            if (!data) {
-                alert("Run a valid calculation configuration before saving!");
-                return;
-            }
-            savedBuilds.push(data);
-            localStorage.setItem(SAVE_KEY_BUILDS, JSON.stringify(savedBuilds));
-            renderSavedBuilds();
-        }
-
-        function deleteBuild(index) {
-            savedBuilds.splice(index, 1);
-            localStorage.setItem(SAVE_KEY_BUILDS, JSON.stringify(savedBuilds));
-            renderSavedBuilds();
-        }
-
-        document.addEventListener('input', function(e) {
-            if(e.target && e.target.classList.contains('saved-title')) {
-                let idx = e.target.getAttribute('data-idx');
-                savedBuilds[idx].label = e.target.value;
-                localStorage.setItem(SAVE_KEY_BUILDS, JSON.stringify(savedBuilds));
-            }
-        });
-
-        function renderSavedBuilds() {
-            const list = document.getElementById('savedList');
-            list.innerHTML = '';
-            if (savedBuilds.length === 0) {
-                list.innerHTML = '<div style="color:var(--text-muted); text-align:center; font-size:14px; margin-top:30px; opacity: 0.6;">No configurations saved yet.</div>';
-                return;
-            }
-            savedBuilds.forEach((build, index) => {
-                list.innerHTML += `
-                    <div class="saved-item">
-                        <div class="saved-title-container">
-                            <input class="saved-title" type="text" value="${build.label}" data-idx="${index}" title="Click to rename">
-                            <button class="btn-del" onclick="deleteBuild(${index})">✕</button>
-                        </div>
-                        <div class="saved-stats">
-                            <div>Base Lvl 1: <span>${build.lvl1Base}</span></div>
-                            <div>Base Out: <span>${build.baseInc}</span></div>
-                            <div>Rebirth Mult: <span style="color:var(--text-accent);">${build.finalInc}</span></div>
-                            <div>Daily Gain: <span style="color:#2ecc71;">${build.addedDaily}</span></div>
-                            <div>Cost: <span style="color:var(--text-accent);">${build.totalCost}</span></div>
-                            <div>Time: <span style="color:var(--border-glow);">${build.timeReq}</span></div>
-                        </div>
-                    </div>
-                `;
-            });
+            setTimeout(() => { defBtn.innerText = 'Use as Default'; }, 2000);
         }
     </script>
 </body>
