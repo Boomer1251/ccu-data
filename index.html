@@ -3,315 +3,931 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tycoon Progression & Optimization Calculator</title>
+    <title>Ultimate Brainrot Tool Suite</title>
     <style>
         :root {
-            --bg-main: #0f172a;
-            --bg-card: #1e293b;
-            --border: #334155;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --accent: #3b82f6;
-            --success: #10b981;
+            --bg-main: #0a0503;
+            --bg-card: #160d07;
+            --bg-input: #26160c;
+            --border-glow: #ffaa00;
+            --text-main: #f0e6df;
+            --text-accent: #00ffcc;
+            --text-muted: #a69285;
+            --btn-success: #2ecc71;
+            --btn-primary: #3498db;
+            --btn-danger: #e74c3c;
+            --card-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+            --card-border: 1px solid rgba(255, 255, 255, 0.04);
+            --theme-font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            --transition-speed: 0.2s;
         }
+
         body {
-            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: var(--theme-font);
             background-color: var(--bg-main);
             color: var(--text-main);
             margin: 0;
-            padding: 2rem;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            box-sizing: border-box;
+            transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
+            overflow-x: auto;
         }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
+
+        /* Countdown Banner Container */
+        #updateCountdownBanner {
+            display: none; /* Managed dynamically via JavaScript */
+            background: linear-gradient(90deg, rgba(0,0,0,0.4), var(--bg-card), rgba(0,0,0,0.4));
+            border-bottom: 2px solid var(--border-glow);
+            padding: 14px 20px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--text-main);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
         }
-        .header {
+
+        #updateCountdownTimer {
+            color: var(--border-glow);
+            font-family: monospace;
+            font-size: 18px;
+            margin-left: 5px;
+            text-shadow: 0 0 10px rgba(255, 170, 0, 0.2);
+        }
+
+        .main-app-container {
+            display: flex;
+            flex-grow: 1;
+            min-height: 0;
+        }
+
+        .theme-sidebar {
+            width: 240px;
+            min-width: 240px;
+            background: var(--bg-card);
+            border-right: var(--card-border);
+            padding: 25px 15px;
+            box-shadow: var(--card-shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            box-sizing: border-box;
+            height: calc(100vh - 54px);
+            position: sticky;
+            top: 54px;
+            overflow-y: auto;
+        }
+
+        .theme-sidebar::-webkit-scrollbar { width: 4px; }
+        .theme-sidebar::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 4px; }
+
+        .sidebar-section {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 15px;
+            margin-bottom: 5px;
+        }
+
+        .btn-set-default {
+            width: 100%;
+            padding: 10px 12px;
+            background-color: transparent;
+            border: 1px dashed var(--border-glow);
+            color: var(--border-glow);
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            text-align: center;
+            box-sizing: border-box;
+            transition: all var(--transition-speed) ease;
+        }
+
+        .btn-set-default:hover { background-color: var(--border-glow); color: var(--bg-main); }
+
+        .settings-toggle-box {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,0.02);
+        }
+
+        .toggle-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 1rem;
-            margin-bottom: 2rem;
-        }
-        .countdown {
-            background: var(--bg-card);
-            padding: 0.5rem 1rem;
-            border-radius: 0.5rem;
-            border: 1px solid var(--border);
-            font-variant-numeric: tabular-nums;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 2fr;
-            gap: 2rem;
-        }
-        .panel {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            padding: 1.5rem;
-            border-radius: 0.75rem;
-            height: fit-content;
-        }
-        .form-group {
-            margin-bottom: 1.25rem;
-        }
-        label {
-            display: block;
-            margin-bottom: 0.5rem;
+            font-size: 12px;
+            font-weight: 600;
             color: var(--text-muted);
-            font-size: 0.875rem;
         }
-        input, select {
-            width: 100%;
-            padding: 0.625rem;
-            background: var(--bg-main);
-            border: 1px solid var(--border);
-            color: var(--text-main);
-            border-radius: 0.375rem;
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 20px;
+        }
+
+        .switch input { opacity: 0; width: 0; height: 0; }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--bg-input);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: .2s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 12px; width: 12px;
+            left: 3px; bottom: 3px;
+            background-color: var(--text-muted);
+            transition: .2s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider { background-color: var(--border-glow); border-color: transparent;}
+        input:checked + .slider:before { transform: translateX(14px); background-color: var(--bg-main); }
+
+        .workspace-layout {
+            display: grid;
+            grid-template-columns: 290px minmax(550px, 1fr) 320px;
+            gap: 25px;
+            padding: 40px 30px;
+            flex-grow: 1;
+            width: calc(100% - 240px);
+            min-width: 1150px;
             box-sizing: border-box;
         }
-        .results-table {
+
+        @media (max-width: 1300px) {
+            .main-app-container { flex-direction: column; }
+            .theme-sidebar { width: 100%; min-width: 100%; height: auto; position: relative; top: 0; border-right: none; border-bottom: var(--card-border); padding: 20px; flex-direction: row; flex-wrap: wrap; align-items: center; }
+            .sidebar-section { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+            .btn-set-default { width: auto; margin-bottom: 0; margin-left: auto; padding: 12px 16px; }
+            .workspace-layout { grid-template-columns: 1fr; width: 100%; min-width: 100%; padding: 20px; }
+        }
+
+        .calculator-card, .saved-card, .mutations-card, .rot-card {
+            background: var(--bg-card);
+            border: var(--card-border);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: var(--card-shadow);
+            height: fit-content;
+            transition: background var(--transition-speed) ease, border var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+        }
+
+        .mutations-card { padding: 20px; }
+        .calculator-card { min-width: 500px; }
+
+        h2 {
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-size: 17px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--border-glow);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 12px;
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
         }
-        .results-table th, .results-table td {
-            padding: 0.75rem;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-        }
-        .results-table th {
-            color: var(--text-muted);
+
+        .theme-btn {
+            width: 100%;
+            padding: 11px 14px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            background: var(--bg-input);
+            color: var(--text-main);
+            cursor: pointer;
             font-weight: 600;
-            font-size: 0.875rem;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-sizing: border-box;
+            transition: all 0.15s ease;
         }
-        .badge {
-            padding: 0.25rem 0.5rem;
-            border-radius: 0.25rem;
-            font-size: 0.75rem;
-            font-weight: bold;
+
+        .theme-btn:hover { border-color: var(--border-glow); background: rgba(255, 255, 255, 0.02); }
+        .theme-btn.active { border-color: var(--border-glow); background: rgba(255, 255, 255, 0.05); box-shadow: inset 0 0 8px rgba(255,255,255,0.02); }
+        .theme-dot { width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 8px currentColor; flex-shrink: 0; }
+
+        .mutation-grid { display: grid; grid-template-columns: 1fr; gap: 8px; max-height: 520px; overflow-y: auto; padding-right: 4px; }
+        .mutation-grid::-webkit-scrollbar { width: 4px; }
+        .mutation-grid::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 4px; }
+
+        .mutation-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: rgba(0, 0, 0, 0.15); border-radius: 10px; font-size: 13px; border: 1px solid rgba(255, 255, 255, 0.02); cursor: pointer; user-select: none; transition: all 0.15s ease; }
+        .mutation-row:hover { background: rgba(255, 255, 255, 0.02); border-color: rgba(255, 255, 255, 0.08); }
+        .mutation-row.selected { border-color: var(--border-glow); background: rgba(255, 255, 255, 0.02); box-shadow: 0 0 10px rgba(0,0,0,0.2); }
+        
+        .mutation-cb { appearance: none; width: 16px; height: 16px; border: 2px solid var(--text-muted); border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.12s ease; }
+        .mutation-row.selected .mutation-cb { border-color: var(--border-glow); background: var(--border-glow); }
+        .mutation-row.selected .mutation-cb::after { content: ''; width: 6px; height: 6px; background: var(--bg-main); border-radius: 50%; }
+        .mutation-name { font-weight: 600; text-transform: capitalize; flex-grow: 1; }
+        .mutation-value { font-family: monospace; color: var(--text-accent); font-weight: 700; }
+        .mutation-tag { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; background: rgba(0, 255, 204, 0.1); color: var(--text-accent); border: 1px solid rgba(0, 255, 204, 0.2); }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .input-group { margin-bottom: 20px; position: relative; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 12px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; }
+        input, select { width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.08); background-color: var(--bg-input); color: var(--text-main); font-size: 15px; font-weight: 500; box-sizing: border-box; transition: all var(--transition-speed) ease; font-family: inherit; }
+        input:focus, select:focus { outline: none; border-color: var(--border-glow); box-shadow: 0 0 12px rgba(255, 170, 0, 0.1); }
+
+        .btn-flex { display: flex; gap: 15px; margin-top: 25px; }
+        button.action-btn { padding: 16px 24px; color: white; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; text-transform: uppercase; flex: 1; transition: opacity 0.15s ease; font-family: inherit; }
+        button.action-btn:hover { opacity: 0.9; }
+        .btn-calc { background-color: var(--btn-success); flex: 2; box-shadow: 0 4px 12px rgba(46, 204, 113, 0.2); }
+        .btn-save { background-color: var(--btn-primary); box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2); }
+
+        #results { margin-top: 30px; padding: 20px; background-color: rgba(0, 0, 0, 0.2); border-top: 1px dashed rgba(255, 255, 255, 0.08); border-bottom: 1px dashed rgba(255, 255, 255, 0.08); display: none; }
+        .res-grid-mini { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px 24px; }
+
+        .mini-stat-box { display: flex; flex-direction: column; }
+        .mini-label { font-size: 11px; text-transform: uppercase; color: var(--text-muted); margin-bottom: 3px; font-weight: 600; }
+        .mini-val { font-size: 15px; font-weight: 700; font-family: monospace; color: var(--text-main); }
+
+        .saved-list { margin-top: 5px; max-height: 550px; overflow-y: auto; padding-right: 4px; }
+        .saved-item { background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(255, 255, 255, 0.03); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
+        .saved-title-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .saved-title { color: var(--border-glow); font-weight: 700; background: transparent; border: none; border-bottom: 1px solid transparent; font-size: 14px; width: 80%; padding: 2px 0; }
+        .btn-del { background: transparent; border: 1px solid rgba(231, 76, 60, 0.3); color: var(--btn-danger); border-radius: 8px; width: 26px; height: 26px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+
+        .saved-stats { font-size: 12px; color: var(--text-main); display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px; }
+        .saved-stats span { font-family: monospace; font-weight: bold; }
+
+        .rot-card { grid-column: 1 / -1; margin-top: 10px; }
+        
+        .list-header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; gap: 20px; flex-wrap: wrap; width: 100%; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 12px;}
+        .list-header-title-area { display: flex; align-items: center; gap: 15px; flex-grow: 1; }
+        .list-header-title-area h2 { border-bottom: none; margin-bottom: 0; padding-bottom: 0; width: auto; }
+
+        .search-controls-wrapper { display: flex; gap: 15px; flex-grow: 1; justify-content: flex-end; max-width: 600px; width: 100%; }
+        .search-input { padding: 10px 14px; font-size: 14px; border-radius: 10px; flex-grow: 2; }
+        .filter-select { width: auto; min-width: 180px; padding: 10px 14px; font-size: 14px; border-radius: 10px; flex-grow: 1; }
+        
+        .btn-toggle-list { background: transparent; border: 1px solid var(--border-glow); color: var(--border-glow); padding: 8px 16px; font-size: 11px; font-weight: 700; border-radius: 8px; cursor: pointer; text-transform: uppercase; white-space: nowrap; height: fit-content; transition: all var(--transition-speed) ease; font-family: inherit; }
+        .btn-toggle-list:hover { background: var(--border-glow); color: var(--bg-main); }
+        
+        .rot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 20px; }
+        .rot-grid.collapsed { display: none !important; }
+        .rot-item { background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(255, 255, 255, 0.03); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+        
+        .rot-header { display: flex; justify-content: space-between; align-items: flex-start; }
+        .rot-name { font-weight: 700; font-size: 14px; color: var(--text-main); }
+        
+        .rot-meta-block { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+        .rot-badge { font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 6px; text-transform: uppercase; }
+
+        .rot-cost-calc-box {
+            text-align: right;
+            font-family: monospace;
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1.3;
         }
-        .rarity-common { background: #64748b; color: white; }
-        .rarity-rare { background: #3b82f6; color: white; }
-        .rarity-epic { background: #a855f7; color: white; }
-        .rarity-legendary { background: #f59e0b; color: white; }
-        .rarity-mythic { background: #ef4444; color: white; }
-        .rarity-godly { background: #ec4899; color: white; }
-        .rarity-secret { background: #10b981; color: white; }
+        .rot-cost-amt { color: var(--text-main); }
+        .rot-cost-time { color: var(--border-glow); font-size: 11px; font-weight: 600; }
+
+        .badge-noobini { background: rgba(166, 146, 133, 0.08); color: #a69285; border: 1px solid rgba(166, 146, 133, 0.15); }
+        .badge-rare { background: rgba(52, 152, 219, 0.08); color: #3498db; border: 1px solid rgba(52, 152, 219, 0.15); }
+        .badge-epic { background: rgba(155, 89, 182, 0.08); color: #9b59b6; border: 1px solid rgba(155, 89, 182, 0.15); }
+        .badge-legendary { background: rgba(241, 196, 15, 0.08); color: #f1c40f; border: 1px solid rgba(241, 196, 15, 0.15); }
+        .badge-mythic { background: rgba(230, 126, 34, 0.08); color: #e67e22; border: 1px solid rgba(230, 126, 34, 0.15); }
+        .badge-godly { background: rgba(231, 76, 60, 0.08); color: #e74c3c; border: 1px solid rgba(231, 76, 60, 0.15); }
+        .badge-secret { background: rgba(0, 255, 204, 0.08); color: #00ffcc; border: 1px solid rgba(0, 255, 204, 0.15); }
+        .badge-divine { background: rgba(255, 0, 255, 0.08); color: #ff00ff; border: 1px solid rgba(255, 0, 255, 0.15); }
+        .badge-hacked { background: rgba(118, 255, 3, 0.08); color: #76ff03; border: 1px solid rgba(118, 255, 3, 0.15); }
+        .badge-og { background: rgba(234, 32, 39, 0.08); color: #ea2027; border: 1px solid rgba(234, 32, 39, 0.15); }
+        .badge-celestial { background: rgba(0, 210, 211, 0.08); color: #00d2d1; border: 1px solid rgba(0, 210, 211, 0.15); }
+        .badge-eternal { background: rgba(253, 121, 168, 0.08); color: #fd79a8; border: 1px solid rgba(253, 121, 168, 0.15); }
+
+        .rot-body-metrics { font-size: 12px; color: var(--text-muted); display: grid; grid-template-columns: 1fr; gap: 5px; background: rgba(0, 0, 0, 0.1); padding: 12px; border-radius: 8px; }
+        .rot-body-metrics div span { font-family: monospace; color: var(--text-main); font-weight: 600; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="header">
-        <div>
-            <h1 style="margin:0; font-size: 1.75rem;">Progression & Efficiency Engine</h1>
-            <p style="margin: 0.25rem 0 0 0; color: var(--text-muted);">Income Scaling (1.25x) & Cost Scaling (1.5x)</p>
-        </div>
-        <div class="countdown" id="update-timer">Next Update: Loading...</div>
+    <div id="updateCountdownBanner">
+        Update in <span id="updateCountdownTimer">00d 00h 00m 00s</span> !
     </div>
 
-    <div class="grid">
-        <!-- Configuration Panel -->
-        <div class="panel">
-            <h2 style="margin-top:0; font-size: 1.25rem;">Global Modifiers</h2>
+    <div class="main-app-container">
+        <div class="theme-sidebar">
+            <div class="sidebar-section">
+                <h2>Configs</h2>
+                <button class="btn-set-default" id="setDefaultBtn" onclick="saveDefaultTheme()">Use as Default</button>
+                <div class="settings-toggle-box">
+                    <div class="toggle-row">
+                        <span>Theme Custom Fonts</span>
+                        <label class="switch">
+                            <input type="checkbox" id="fontToggle" checked onchange="toggleCustomFonts()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
             
-            <div class="form-group">
-                <label for="rebirth">Rebirth Multiplier</label>
-                <input type="text" id="rebirth" value="1.5M" placeholder="e.g. 10.5B">
-            </div>
-
-            <div class="form-group">
-                <label for="mutation">Character Mutation</label>
-                <select id="mutation"></select>
-            </div>
-
-            <div class="form-group">
-                <label for="current-level">Current Level of Upgrades</label>
-                <input type="number" id="current-level" value="1" min="1">
-            </div>
-
-            <div class="form-group">
-                <label for="target-level">Target Level</label>
-                <input type="number" id="target-level" value="50" min="2">
-            </div>
+            <h2>Themes</h2>
+            <button class="theme-btn active" onclick="setTheme('og')" id="theme-og"><span class="theme-dot" style="color:#ffaa00; background:#ffaa00;"></span> OG Cocoa</button>
+            <button class="theme-btn" onclick="setTheme('void')" id="theme-void"><span class="theme-dot" style="color:#bf5fff; background:#bf5fff;"></span> Purple Void</button>
+            <button class="theme-btn" onclick="setTheme('matrix')" id="theme-matrix"><span class="theme-dot" style="color:#00ff00; background:#00ff00;"></span> Matrix Hack</button>
+            <button class="theme-btn" onclick="setTheme('frost')" id="theme-frost"><span class="theme-dot" style="color:#00bfff; background:#00bfff;"></span> Frostbite</button>
+            <button class="theme-btn" onclick="setTheme('crimson')" id="theme-crimson"><span class="theme-dot" style="color:#ff003c; background:#ff003c;"></span> Crimson Demon</button>
+            <button class="theme-btn" onclick="setTheme('cyberpunk')" id="theme-cyberpunk"><span class="theme-dot" style="color:#ff007f; background:#ff007f;"></span> Neon Cyber</button>
+            <button class="theme-btn" onclick="setTheme('luxury')" id="theme-luxury"><span class="theme-dot" style="color:#d4af37; background:#d4af37;"></span> Royal Gold</button>
+            <button class="theme-btn" onclick="setTheme('toxic')" id="theme-toxic"><span class="theme-dot" style="color:#76ff03; background:#76ff03;"></span> Bio Sludge</button>
+            <button class="theme-btn" onclick="setTheme('synthwave')" id="theme-synthwave"><span class="theme-dot" style="color:#ff5e97; background:#ff5e97;"></span> Outrun 1984</button>
+            <button class="theme-btn" onclick="setTheme('deep')" id="theme-deep"><span class="theme-dot" style="color:#00ffff; background:#00ffff;"></span> Subnautica Deep</button>
+            <button class="theme-btn" onclick="setTheme('vampire')" id="theme-vampire"><span class="theme-dot" style="color:#da0000; background:#da0000;"></span> Vampire Castle</button>
+            <button class="theme-btn" onclick="setTheme('retro')" id="theme-retro"><span class="theme-dot" style="color:#ff00f0; background:#ff00f0;"></span> Retrowave Dream</button>
+            <button class="theme-btn" onclick="setTheme('orange')" id="theme-orange"><span class="theme-dot" style="color:#ff6f00; background:#ff6f00;"></span> Overwatch Orange</button>
+            <button class="theme-btn" onclick="setTheme('cyber2')" id="theme-cyber2"><span class="theme-dot" style="color:#00ffaa; background:#00ffaa;"></span> Cyber Cyberpunk</button>
+            <button class="theme-btn" onclick="setTheme('astro')" id="theme-astro"><span class="theme-dot" style="color:#38ef7d; background:#38ef7d;"></span> Astro Deep Space</button>
+            <button class="theme-btn" onclick="setTheme('nuclear')" id="theme-nuclear"><span class="theme-dot" style="color:#a8ff78; background:#a8ff78;"></span> Nuclear Slime</button>
+            <button class="theme-btn" onclick="setTheme('rosegold')" id="theme-rosegold"><span class="theme-dot" style="color:#b33939; background:#b33939;"></span> Rose Gold Quartz</button>
+            <button class="theme-btn" onclick="setTheme('ghost')" id="theme-ghost"><span class="theme-dot" style="color:#706fd3; background:#706fd3;"></span> Ghostly Haunt</button>
+            <button class="theme-btn" onclick="setTheme('mono')" id="theme-mono"><span class="theme-dot" style="color:#ffffff; background:#ffffff;"></span> Minimal Slate</button>
         </div>
 
-        <!-- Output Dash -->
-        <div class="panel">
-            <h2 style="margin-top:0; font-size: 1.25rem;">Optimized Tier Projections</h2>
-            <table class="results-table">
-                <thead>
-                    <tr>
-                        <th>Upgrade Item</th>
-                        <th>Rarity</th>
-                        <th>Total Cost</th>
-                        <th>Projected Income/sec</th>
-                    </tr>
-                </thead>
-                <tbody id="results-body">
-                    <!-- Dynamic injection -->
-                </tbody>
-            </table>
+        <div class="workspace-layout">
+            <div class="mutations-card">
+                <h2>Mutations</h2>
+                <div class="mutation-grid" id="mutationGrid"></div>
+            </div>
+
+            <div class="calculator-card">
+                <h2>Brainrot Calculator</h2>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label>Daily Offline Income Pool</label>
+                        <input type="text" id="dayInc" value="" placeholder="e.g. 1.1S" oninput="globalInputsUpdated()">
+                    </div>
+                    <div class="input-group">
+                        <label>Rebirth Multiplier</label>
+                        <input type="number" id="rebirthMulti" value="" placeholder="e.g. 1" min="1" step="0.1" oninput="globalInputsUpdated()">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label>Brainrot Current Level</label>
+                        <input type="number" id="curLvl" value="" placeholder="e.g. 1" oninput="globalInputsUpdated()">
+                    </div>
+                    <div class="input-group">
+                        <label>Brainrot Target Level</label>
+                        <input type="number" id="tarLvl" value="75" oninput="globalInputsUpdated()">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label>Override Income/s</label>
+                        <input type="text" id="curInc" value="" placeholder="e.g. 420.3K" oninput="overrideInputsUpdated()">
+                    </div>
+                    <div class="input-group">
+                        <label>Override Base Cost</label>
+                        <input type="text" id="curCost" value="" placeholder="e.g. 15" oninput="overrideInputsUpdated()">
+                    </div>
+                </div>
+                <div class="btn-flex">
+                    <button class="action-btn btn-calc" onclick="calculateOverride()">Calculate Manual Entry</button>
+                    <button class="action-btn btn-save" onclick="saveOverrideBuild()">Save Build</button>
+                </div>
+
+                <div id="results">
+                    <div class="res-grid-mini">
+                        <div class="mini-stat-box"><span class="mini-label">Base Level 1</span><span id="resLvl1" class="mini-val" style="color: #ffda79;">-</span></div>
+                        <div class="mini-stat-box"><span class="mini-label">Base Max Lvl</span><span id="resBaseInc" class="mini-val" style="color: #bdc581;">-</span></div>
+                        <div class="mini-stat-box"><span class="mini-label">Max Lvl Rebirth Multi</span><span id="resInc" class="mini-val" style="color: var(--text-accent);">-</span></div>
+                        <div class="mini-stat-box"><span class="mini-label">Daily Gain</span><span id="resAddedDaily" class="mini-val" style="color: #2ecc71;">-</span></div>
+                        <div class="mini-stat-box"><span class="mini-label">Total Cost</span><span id="resCost" class="mini-val">-</span></div>
+                        <div class="mini-stat-box"><span class="mini-label">Time Req</span><span id="resTime" class="mini-val" style="color: var(--border-glow);">-</span></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="saved-card">
+                <h2>Saved Configurations</h2>
+                <div class="saved-list" id="savedList"></div>
+            </div>
+
+            <div class="rot-card">
+                <div class="list-header-controls">
+                    <div class="list-header-title-area">
+                        <h2>Brainrot Upgrades Management Grid</h2>
+                        <button class="btn-toggle-list" id="toggleListBtn" onclick="toggleBrainrotGrid()">Hide List</button>
+                    </div>
+
+                    <div class="search-controls-wrapper" id="searchControls">
+                        <input type="text" id="searchBar" class="search-input" placeholder="Search upgrade name or rarity..." oninput="debounceRenderGrid()">
+                        <select id="rarityFilter" class="filter-select" onchange="renderBrainrotList()">
+                            <option value="all">All Rarities</option>
+                            <option value="noobini">Noobini</option>
+                            <option value="rare">Rare</option>
+                            <option value="epic">Epic</option>
+                            <option value="legendary">Legendary</option>
+                            <option value="mythic">Mythic</option>
+                            <option value="godly">Godly</option>
+                            <option value="secret">Secret</option>
+                            <option value="divine">Divine</option>
+                            <option value="hacked">Hacked</option>
+                            <option value="og">OG</option>
+                            <option value="celestial">Celestial</option>
+                            <option value="eternal">Eternal</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="rot-grid" id="rotGrid"></div>
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-    // 1. Large Number Suffix Mapping System
-    const SUFFIXES = {
-        'K': 1e3, 'M': 1e6, 'B': 1e9, 'T': 1e12, 
-        'Q': 1e15, 'QN': 1e18, 'S': 1e21, 'SP': 1e24, 
-        'O': 1e27, 'N': 1e30, 'D': 1e33
-    };
+    <script>
+        const SUFFIXES = { 'K': 1e3, 'M': 1e6, 'B': 1e9, 'T': 1e12, 'Q': 1e15, 'QN': 1e18, 'S': 1e21, 'SP': 1e24, 'O': 1e27, 'N': 1e30, 'D': 1e33 };
 
-    function parseShortNotation(val) {
-        if (typeof val === 'number') return val;
-        val = val.toUpperCase().replace(/,/g, '').trim();
-        
-        for (let suffix in SUFFIXES) {
-            if (val.endsWith(suffix)) {
-                let numPart = parseFloat(val.slice(0, -suffix.length));
-                return numPart * SUFFIXES[suffix];
+        const THEMES = {
+            og: { main: '#0a0503', card: '#160d07', input: '#26160c', glow: '#ffaa00', accent: '#00ffcc', muted: '#a69285', shadow: '0 12px 40px rgba(0, 0, 0, 0.6)', border: '1px solid rgba(255, 170, 0, 0.04)', font: 'system-ui' },
+            void: { main: '#04010a', card: '#0f051c', input: '#1c0b30', glow: '#bf5fff', accent: '#ff7bfb', muted: '#8c7d9e', shadow: '0 12px 40px rgba(191, 95, 255, 0.15)', border: '1px solid rgba(191, 95, 255, 0.08)', font: 'Segoe UI' },
+            matrix: { main: '#000000', card: '#050805', input: '#0d140d', glow: '#00ff00', accent: '#55ff55', muted: '#668866', shadow: '0 0 25px rgba(0, 255, 0, 0.08)', border: '1px solid rgba(0, 255, 0, 0.2)', font: 'Courier New' },
+            frost: { main: '#02070a', card: '#08141c', input: '#102430', glow: '#00bfff', accent: '#e0ffff', muted: '#7fa3b5', shadow: '0 12px 40px rgba(0, 191, 255, 0.12)', border: '1px solid rgba(0, 191, 255, 0.15)', font: 'Segoe UI' },
+            crimson: { main: '#080002', card: '#170106', input: '#26030b', glow: '#ff003c', accent: '#ff809b', muted: '#b57f8a', shadow: '0 12px 40px rgba(255, 0, 60, 0.18)', border: '1px solid rgba(255, 0, 60, 0.12)', font: 'Arial' },
+            cyberpunk: { main: '#0b0914', card: '#141126', input: '#1e193a', glow: '#ff007f', accent: '#00f6ff', muted: '#777196', shadow: '0 15px 45px rgba(255, 0, 127, 0.2)', border: '1px solid rgba(255, 0, 127, 0.15)', font: 'Trebuchet MS' },
+            luxury: { main: '#0d0d0d', card: '#1a1a1a', input: '#262626', glow: '#d4af37', accent: '#ffffff', muted: '#8c8c8c', shadow: '0 25px 55px rgba(0, 0, 0, 0.85)', border: '1px solid rgba(212, 175, 55, 0.25)', font: 'Georgia' },
+            toxic: { main: '#0d0f0c', card: '#161a14', input: '#20261d', glow: '#76ff03', accent: '#eeff41', muted: '#7b8776', shadow: '0 12px 35px rgba(118, 255, 3, 0.12)', border: '1px solid rgba(118, 255, 3, 0.08)', font: 'Lucida Sans' },
+            synthwave: { main: '#1a0933', card: '#271247', input: '#3a1b69', glow: '#ff5e97', accent: '#fefe66', muted: '#a183ca', shadow: '0 12px 40px rgba(255, 94, 151, 0.18)', border: '1px solid rgba(255, 94, 151, 0.12)', font: 'Trebuchet MS' },
+            deep: { main: '#01111a', card: '#032336', input: '#053552', glow: '#00ffff', accent: '#00ffaa', muted: '#417d9e', shadow: '0 12px 40px rgba(0, 255, 255, 0.15)', border: '1px solid rgba(0, 255, 255, 0.1)', font: 'Segoe UI' },
+            vampire: { main: '#0f0202', card: '#210505', input: '#380a0a', glow: '#da0000', accent: '#ff5252', muted: '#9e6262', shadow: '0 12px 45px rgba(218, 0, 0, 0.2)', border: '1px solid rgba(218, 0, 0, 0.15)', font: 'Times New Roman' },
+            retro: { main: '#12041c', card: '#240a36', input: '#3b1154', glow: '#ff00f0', accent: '#00ffff', muted: '#a170c4', shadow: '0 12px 40px rgba(255, 0, 240, 0.2)', border: '1px solid rgba(255, 0, 240, 0.12)', font: 'Impact' },
+            orange: { main: '#120e0a', card: '#241a12', input: '#382719', glow: '#ff6f00', accent: '#ffffff', muted: '#a88c74', shadow: '0 12px 40px rgba(255, 111, 0, 0.15)', border: '1px solid rgba(255, 111, 0, 0.12)', font: 'Impact' },
+            cyber2: { main: '#050c12', card: '#0c1924', input: '#142738', glow: '#00ffaa', accent: '#00e1ff', muted: '#7093a8', shadow: '0 12px 40px rgba(0, 255, 170, 0.15)', border: '1px solid rgba(0, 255, 170, 0.1)', font: 'Segoe UI' },
+            astro: { main: '#0a0a14', card: '#121226', input: '#1d1d3d', glow: '#38ef7d', accent: '#11998e', muted: '#8383a3', shadow: '0 12px 40px rgba(56, 239, 125, 0.15)', border: '1px solid rgba(56, 239, 125, 0.1)', font: 'Arial' },
+            nuclear: { main: '#0b1205', card: '#16240c', input: '#243b15', glow: '#a8ff78', accent: '#78ffd6', muted: '#879e78', shadow: '0 12px 40px rgba(168, 255, 120, 0.15)', border: '1px solid rgba(168, 255, 120, 0.1)', font: 'Lucida Sans' },
+            rosegold: { main: '#1c1214', card: '#332226', input: '#4a3338', glow: '#b33939', accent: '#ffb8b8', muted: '#a88e93', shadow: '0 12px 40px rgba(179, 57, 57, 0.15)', border: '1px solid rgba(179, 57, 57, 0.1)', font: 'Georgia' },
+            ghost: { main: '#13121c', card: '#232136', input: '#32304d', glow: '#706fd3', accent: '#474787', muted: '#9290a8', shadow: '0 12px 40px rgba(112, 111, 211, 0.15)', border: '1px solid rgba(112, 111, 211, 0.1)', font: 'Trebuchet MS' },
+            mono: { main: '#161719', card: '#212326', input: '#2b2e33', glow: '#ffffff', accent: '#99aab5', muted: '#72767d', shadow: '0 8px 24px rgba(0, 0, 0, 0.3)', border: '1px solid rgba(255, 255, 255, 0.06)', font: 'system-ui' }
+        };
+
+        const MUTATIONS_DATA = [
+            { id: 'm00', name: 'heavenly', val: 36, tag: 'only heavenly' },
+            { id: 'm0', name: 'volcanic', val: 35 },
+            { id: 'm1', name: 'phantom', val: 35 }, { id: 'm2', name: 'rainbow', val: 30 }, { id: 'm3', name: 'bacon', val: 30 },
+            { id: 'm4', name: 'alien', val: 22 }, { id: 'm5', name: 'electrified', val: 16 }, { id: 'm6', name: 'wet', val: 16 },
+            { id: 'm7', name: 'shadow', val: 12 }, { id: 'm8', name: 'enchanted', val: 12 }, { id: 'm9', name: 'virus', val: 10 },
+            { id: 'm10', name: 'void', val: 10 }, { id: 'm11', name: 'radioactive', val: 8 }, { id: 'm12', name: 'molten', val: 6 },
+            { id: 'm13', name: 'plasma', val: 4 }, { id: 'm14', name: 'diamond', val: 2 }, { id: 'm15', name: 'gold', val: 1.5 }
+        ];
+
+        const BRAINROT_UPGRADES = [
+            // Noobini
+            { name: "Noobini Pizzanini", rarity: "noobini", baseInc: 2 }, { name: "Lirili Larila", rarity: "noobini", baseInc: 3 }, { name: "Tim Cheese", rarity: "noobini", baseInc: 3 }, { name: "Talpa Di Fero", rarity: "noobini", baseInc: 4 }, { name: "Svinina Bombardino", rarity: "noobini", baseInc: 5 }, { name: "Pipi Kiwi", rarity: "noobini", baseInc: 6 }, { name: "Trippi Troppi", rarity: "noobini", baseInc: 7 }, { name: "Fluriflura", rarity: "noobini", baseInc: 7 },
+            // Rare
+            { name: "Gangster Footera", rarity: "rare", baseInc: 15 }, { name: "Bandito Bobritto", rarity: "rare", baseInc: 17 }, { name: "Boneca Ambalabu", rarity: "rare", baseInc: 17 }, { name: "Ta Ta Ta Ta Sahur", rarity: "rare", baseInc: 18 }, { name: "Ballerina Cappuccina", rarity: "rare", baseInc: 19 }, { name: "Cappuccino Assassino", rarity: "rare", baseInc: 22 }, { name: "Brr Brr Patapim", rarity: "rare", baseInc: 22 }, { name: "Cacto Hipopotamo", rarity: "rare", baseInc: 26 },
+            // Epic
+            { name: "Garamaramam", rarity: "epic", baseInc: 40 }, { name: "Madung", rarity: "epic", baseInc: 44 }, { name: "Waterdino", rarity: "epic", baseInc: 50 }, { name: "Pesto Mortioni", rarity: "epic", baseInc: 52 }, { name: "Pannaburro", rarity: "epic", baseInc: 62 }, { name: "Orcalero", rarity: "epic", baseInc: 66 }, { name: "Mangolini Parrocini", rarity: "epic", baseInc: 66 }, { name: "John Pork", rarity: "epic", baseInc: 72 }, { name: "Gattatino Nyanino", rarity: "epic", baseInc: 76 },
+            // Legendary
+            { name: "Chimpanzini Bananini", rarity: "legendary", baseInc: 100 }, { name: "Plan Red", rarity: "legendary", baseInc: 130 }, { name: "Plan Blue", rarity: "legendary", baseInc: 140 }, { name: "Capi Taco", rarity: "legendary", baseInc: 150 }, { name: "Bambini Crostini", rarity: "legendary", baseInc: 180 }, { name: "Trulimero Trulicina", rarity: "legendary", baseInc: 160 }, { name: "Elefantucci Bananucci", rarity: "legendary", baseInc: 170 }, { name: "Bananita Dolphinita", rarity: "legendary", baseInc: 210 }, { name: "Salamino Penguino", rarity: "legendary", baseInc: 230 },
+            // Mythic
+            { name: "Penguino Cocosino", rarity: "mythic", baseInc: 450 }, { name: "67", rarity: "mythic", baseInc: 500 }, { name: "Burbaloni Lulliloli", rarity: "mythic", baseInc: 550 }, { name: "Chef Crabracadabra", rarity: "mythic", baseInc: 600 }, { name: "Capybara Eggplant", rarity: "mythic", baseInc: 650 }, { name: "Bangello", rarity: "mythic", baseInc: 725 }, { name: "Elefanto Frigo", rarity: "mythic", baseInc: 775 }, { name: "Rinoccio Verdini", rarity: "mythic", baseInc: 880 }, { name: "Glorbo Fruttodrilo", rarity: "mythic", baseInc: 920 },
+            // Godly
+            { name: "Udin Din Din Dun", rarity: "godly", baseInc: 1800 }, { name: "Pandaccini Bananini", rarity: "godly", baseInc: 2000 }, { name: "Waterino", rarity: "godly", baseInc: 2100 }, { name: "Strawberreli Flamingelli", rarity: "godly", baseInc: 2300 }, { name: "Sigma Boy", rarity: "godly", baseInc: 2400 }, { name: "Frigo Camelo", rarity: "godly", baseInc: 2600 }, { name: "Orangutini Ananasini", rarity: "godly", baseInc: 2700 }, { name: "Rhino Toasterino", rarity: "godly", baseInc: 2800 }, { name: "Bombardiro Crocodilo", rarity: "godly", baseInc: 3100 },
+            // Secret
+            { name: "Bombini Gusini", rarity: "secret", baseInc: 4700 }, { name: "Castlino Fortini", rarity: "secret", baseInc: 5000 }, { name: "Tuff Toucan", rarity: "secret", baseInc: 5300 }, { name: "Fryuro", rarity: "secret", baseInc: 5800 }, { name: "Burguro", rarity: "secret", baseInc: 6200 }, { name: "Guest666", rarity: "secret", baseInc: 7000 }, { name: "Zibra Zubra Zibralini", rarity: "secret", baseInc: 7700 }, { name: "Cavallo Virtuoso", rarity: "secret", baseInc: 8500 }, { name: "Gorillo Watermelondrillo", rarity: "secret", baseInc: 9500 }, { name: "Cocofanto Elefanto", rarity: "secret", baseInc: 10000 }, { name: "Bambu Sahur", rarity: "secret", baseInc: 12500 },
+            // Divine
+            { name: "WL", rarity: "divine", baseInc: 15000 }, { name: "Girafa Celeste", rarity: "divine", baseInc: 16000 }, { name: "Tralalero Tralala", rarity: "divine", baseInc: 17500 }, { name: "Tralalerita Tralala", rarity: "divine", baseInc: 18000 }, { name: "Peant Jarro", rarity: "divine", baseInc: 19500 }, { name: "Dipperl Chiperini", rarity: "divine", baseInc: 20000 }, { name: "Rexosaurus", rarity: "divine", baseInc: 22500 }, { name: "1x1x1x1", rarity: "divine", baseInc: 23000 }, { name: "Matteo", rarity: "divine", baseInc: 25000 }, { name: "Espresso Signora", rarity: "divine", baseInc: 27500 },
+            // Hacked
+            { name: "Alessio", rarity: "hacked", baseInc: 27500 }, { name: "Tripi Tropi Tropa Tripa", rarity: "hacked", baseInc: 28000 }, { name: "Swag Soda", rarity: "hacked", baseInc: 29000 }, { name: "Stoppo Luminino", rarity: "hacked", baseInc: 30000 }, { name: "Torrtuginni Dragonfrutini", rarity: "hacked", baseInc: 32000 }, { name: "Tictac Sahur", rarity: "hacked", baseInc: 38000 }, { name: "Cactus Pingo", rarity: "hacked", baseInc: 44500 }, { name: "Los Primos Blue", rarity: "hacked", baseInc: 44500 }, { name: "La Vacca Saturno Saturnita", rarity: "hacked", baseInc: 48500 }, { name: "Agarrini La Palini", rarity: "hacked", baseInc: 53500 }, { name: "Bottellini", rarity: "hacked", baseInc: 75000 },
+            // OG
+            { name: "Karkerkar Kurkur", rarity: "og", baseInc: 120000 }, { name: "Blackhole Goat", rarity: "og", baseInc: 125000 }, { name: "Compactoroni Daskaloni", rarity: "og", baseInc: 135000 }, { name: "Cappuccino Clownino", rarity: "og", baseInc: 140000 }, { name: "Nuclearo Dinossauro", rarity: "og", baseInc: 190000 }, { name: "Los Noo My Hotspotsitos", rarity: "og", baseInc: 200000 }, { name: "Chillin Chilli", rarity: "og", baseInc: 220000 }, { name: "Crazylone Pizaione", rarity: "og", baseInc: 225000 }, { name: "Corn Sahur", rarity: "og", baseInc: 225000 }, { name: "Meowl", rarity: "og", baseInc: 275000 }, { name: "Strawberry Elephant", rarity: "og", baseInc: 420000 },
+            // Celestial
+            { name: "Dragonfrutina Dolphinita", rarity: "celestial", baseInc: 475000 }, { name: "Guerriro Digitale", rarity: "celestial", baseInc: 490000 }, { name: "Chicleteira Bicicleteira", rarity: "celestial", baseInc: 500000 }, { name: "Pot Hotspot", rarity: "celestial", baseInc: 525000 }, { name: "Krupuk Pagi Pagi", rarity: "celestial", baseInc: 540000 }, { name: "Beluga Beluga", rarity: "celestial", baseInc: 575000 }, { name: "Tralaledon", rarity: "celestial", baseInc: 625000 }, { name: "Anpali Babel", rarity: "celestial", baseInc: 750000 }, { name: "Ketchuru and Musturu", rarity: "celestial", baseInc: 800000 }, { name: "Los Primos", rarity: "celestial", baseInc: 800000 }, { name: "Mastodontico Telepiedone", rarity: "celestial", baseInc: 850000 },
+            // Eternal
+            { name: "Ketupat Kepat", rarity: "eternal", baseInc: 1000000 }, { name: "Professora 67", rarity: "eternal", baseInc: 1000000 }, { name: "Astro Tim", rarity: "eternal", baseInc: 1100000 }, { name: "Baba Yaga", rarity: "eternal", baseInc: 1200000 }, { name: "Kicky", rarity: "eternal", baseInc: 1400000 }
+        ];
+
+        let selectedMutationId = null;
+        let savedBuilds = [];
+        let currentlySelectedTheme = 'og';
+        let gridDebounceTimeout = null;
+
+        const SAVE_KEY_INCOME   = 'brainrot_v7_income';
+        const SAVE_KEY_REBIRTH  = 'brainrot_v7_rebirth';
+        const SAVE_KEY_BUILDS   = 'brainrot_v7_builds';
+        const SAVE_KEY_THEME    = 'brainrot_v7_theme';
+        const SAVE_KEY_FONTS    = 'brainrot_v7_fonts';
+
+        window.onload = function() {
+            let savedIncome = localStorage.getItem(SAVE_KEY_INCOME);
+            if (savedIncome) document.getElementById('dayInc').value = savedIncome;
+            let savedRebirth = localStorage.getItem(SAVE_KEY_REBIRTH);
+            if (savedRebirth) document.getElementById('rebirthMulti').value = savedRebirth;
+            
+            let storedBuilds = localStorage.getItem(SAVE_KEY_BUILDS);
+            if (storedBuilds) { savedBuilds = JSON.parse(storedBuilds); renderSavedBuilds(); }
+            
+            let savedFontToggle = localStorage.getItem(SAVE_KEY_FONTS);
+            if (savedFontToggle !== null) {
+                document.getElementById('fontToggle').checked = (savedFontToggle === 'true');
+            }
+
+            let savedTheme = localStorage.getItem(SAVE_KEY_THEME);
+            if (savedTheme && THEMES[savedTheme]) setTheme(savedTheme); else setTheme('og');
+
+            renderMutationsList();
+            renderBrainrotList();
+
+            initSaturdayCountdown();
+        };
+
+        function initSaturdayCountdown() {
+            function updateClock() {
+                const now = new Date();
+                const targetTimeZone = 'Europe/Warsaw'; 
+                
+                let nextUpdate = new Date(now);
+                nextUpdate.setHours(19, 0, 0, 0); 
+                
+                let daysToSaturday = (6 - now.getDay() + 7) % 7;
+                
+                if (daysToSaturday === 0) {
+                    const currentTargetCheck = new Date(now.toLocaleString('en-US', { timeZone: targetTimeZone }));
+                    if (currentTargetCheck.getHours() >= 19) {
+                        daysToSaturday = 7;
+                    }
+                }
+                
+                nextUpdate.setDate(now.getDate() + daysToSaturday);
+
+                const localizedTargetStr = nextUpdate.toLocaleString('en-US', { timeZone: targetTimeZone });
+                const localizedTargetObj = new Date(localizedTargetStr);
+                const localDiff = nextUpdate.getTime() - localizedTargetObj.getTime();
+                
+                const definitiveTarget = new Date(nextUpdate.getTime() + localDiff);
+                const timeRemainingMs = definitiveTarget - now;
+                const threeDaysInMs = 3 * 24 * 60 * 60 * 1000;
+
+                const banner = document.getElementById('updateCountdownBanner');
+                const timerSpan = document.getElementById('updateCountdownTimer');
+
+                if (timeRemainingMs <= threeDaysInMs && timeRemainingMs > 0) {
+                    banner.style.display = 'block';
+                    
+                    const totalSecs = Math.floor(timeRemainingMs / 1000);
+                    const days = Math.floor(totalSecs / (24 * 3600));
+                    const hours = Math.floor((totalSecs % (24 * 3600)) / 3600);
+                    const mins = Math.floor((totalSecs % 3600) / 60);
+                    const secs = totalSecs % 60;
+
+                    const dStr = String(days).padStart(2, '0');
+                    const hStr = String(hours).padStart(2, '0');
+                    const mStr = String(mins).padStart(2, '0');
+                    const sStr = String(secs).padStart(2, '0');
+
+                    timerSpan.innerText = `${dStr}d ${hStr}h ${mStr}m ${sStr}s`;
+                } else {
+                    banner.style.display = 'none';
+                }
+            }
+            
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
+
+        function renderMutationsList() {
+            const grid = document.getElementById('mutationGrid');
+            grid.innerHTML = '';
+            MUTATIONS_DATA.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'mutation-row';
+                div.id = `mutrow-${item.id}`;
+                
+                let tagMarkup = item.tag ? `<span class="mutation-tag">${item.tag}</span>` : '';
+                
+                div.innerHTML = `
+                    <div class="mutation-cb"></div>
+                    <span class="mutation-name">${item.name} ${tagMarkup}</span>
+                    <span class="mutation-value">${item.val}x</span>
+                `;
+                div.addEventListener('click', () => toggleMutation(item.id));
+                grid.appendChild(div);
+            });
+        }
+
+        function toggleMutation(id) {
+            const currentSelected = document.getElementById(`mutrow-${id}`);
+            if (selectedMutationId === id) {
+                currentSelected.classList.remove('selected');
+                selectedMutationId = null;
+            } else {
+                if (selectedMutationId) {
+                    const previousSelected = document.getElementById(`mutrow-${selectedMutationId}`);
+                    if (previousSelected) previousSelected.classList.remove('selected');
+                }
+                currentSelected.classList.add('selected');
+                selectedMutationId = id;
+            }
+            globalInputsUpdated();
+        }
+
+        function getActiveMutationMultiplier() {
+            if (!selectedMutationId) return 1;
+            const item = MUTATIONS_DATA.find(m => m.id === selectedMutationId);
+            return item ? item.val : 1;
+        }
+
+        function toggleBrainrotGrid() {
+            const grid = document.getElementById('rotGrid');
+            const btn = document.getElementById('toggleListBtn');
+            const searchWrapper = document.getElementById('searchControls');
+            
+            if (grid.classList.contains('collapsed')) {
+                grid.classList.remove('collapsed');
+                searchWrapper.style.visibility = 'visible';
+                btn.innerText = 'Hide List';
+            } else {
+                grid.classList.add('collapsed');
+                searchWrapper.style.visibility = 'hidden';
+                btn.innerText = 'Show List';
             }
         }
-        return parseFloat(val) || 0;
-    }
 
-    function formatShortNotation(num) {
-        if (num === 0) return '0';
-        if (num < 1000) return num.toFixed(1);
-        
-        let absNum = Math.abs(num);
-        let chosenSuffix = '';
-        let chosenValue = 1;
+        function debounceRenderGrid() {
+            clearTimeout(gridDebounceTimeout);
+            gridDebounceTimeout = setTimeout(() => {
+                renderBrainrotList();
+            }, 250);
+        }
 
-        // Iterate through to find matching suffix bracket
-        for (let suffix in SUFFIXES) {
-            if (absNum >= SUFFIXES[suffix]) {
-                chosenSuffix = suffix;
-                chosenValue = SUFFIXES[suffix];
+        function globalInputsUpdated() {
+            liveSaveFields();
+            if (document.getElementById('results').style.display === 'block') {
+                calculateOverride();
+            }
+            debounceRenderGrid();
+        }
+
+        function overrideInputsUpdated() {
+            if (document.getElementById('results').style.display === 'block') {
+                calculateOverride();
             }
         }
 
-        let formatted = (num / chosenValue).toFixed(2);
-        return `${formatted}${chosenSuffix}`;
-    }
-
-    // 2. Game Data Registries (Swapped 'Noobini' out entirely for 'Common')
-    const MUTATIONS = {
-        'None': 1,
-        'Gold': 1.5,
-        'Diamond': 3.0,
-        'Rainbow': 7.5,
-        'Galactic': 15.0,
-        'Heavenly': 36.0
-    };
-
-    // Scaled sample array matching game tier structures (Expandable to all 69 items)
-    const UPGRADE_MANIFEST = [
-        { name: "Pizzanini Generator", rarity: "Common", baseCost: 150, baseIncome: 2 },
-        { name: "Common Delivery Box", rarity: "Common", baseCost: 800, baseIncome: 12 },
-        { name: "Copper Conveyor Belt", rarity: "Rare", baseCost: 4500, baseIncome: 75 },
-        { name: "Supercharged Kinetic Engine", rarity: "Epic", baseCost: 25000, baseIncome: 420 },
-        { name: "Sub-Atomic Splitter", rarity: "Legendary", baseCost: 175000, baseIncome: 2900 },
-        { name: "Mythic Mana Reactor", rarity: "Mythic", baseCost: 1200000, baseIncome: 21000 },
-        { name: "Godly Chronos Drive", rarity: "Godly", baseCost: 9500000, baseIncome: 165000 },
-        { name: "Kicky Overlord Core", rarity: "Secret", baseCost: 75000000, baseIncome: 1400000 }
-    ];
-
-    // 3. Mathematical Calculations
-    function calculateCostForRange(baseCost, currentLvl, targetLvl) {
-        let totalCost = 0;
-        // Cumulative compounding sum loop
-        for (let l = currentLvl; l < targetLvl; l++) {
-            totalCost += baseCost * Math.pow(1.5, l - 1);
-        }
-        return totalCost;
-    }
-
-    function calculateIncomeAtLevel(baseIncome, targetLvl, globalMulti) {
-        // Base scaling rule: 25% exponential jump per step
-        return baseIncome * Math.pow(1.25, targetLvl - 1) * globalMulti;
-    }
-
-    // 4. Interface Updates
-    function init() {
-        const mutationSelect = document.getElementById('mutation');
-        for (let key in MUTATIONS) {
-            let opt = document.createElement('option');
-            opt.value = MUTATIONS[key];
-            opt.innerText = `${key} (${MUTATIONS[key]}x)`;
-            mutationSelect.appendChild(opt);
-        }
-        mutationSelect.value = "1";
-
-        // Listeners for processing changes instantly
-        document.getElementById('rebirth').addEventListener('input', renderProjections);
-        document.getElementById('mutation').addEventListener('change', renderProjections);
-        document.getElementById('current-level').addEventListener('input', renderProjections);
-        document.getElementById('target-level').addEventListener('input', renderProjections);
-
-        renderProjections();
-        startUpdateCountdown();
-    }
-
-    function renderProjections() {
-        const rebirthMulti = parseShortNotation(document.getElementById('rebirth').value);
-        const mutationMulti = parseFloat(document.getElementById('mutation').value);
-        const currentLvl = parseInt(document.getElementById('current-level').value) || 1;
-        const targetLvl = parseInt(document.getElementById('target-level').value) || 2;
-        
-        const globalMulti = rebirthMulti * mutationMulti;
-        const tbody = document.getElementById('results-body');
-        tbody.innerHTML = '';
-
-        UPGRADE_MANIFEST.forEach(item => {
-            const cost = calculateCostForRange(item.baseCost, currentLvl, targetLvl);
-            const income = calculateIncomeAtLevel(item.baseIncome, targetLvl, globalMulti);
-
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td><strong>${item.name}</strong></td>
-                <td><span class="badge rarity-${item.rarity.toLowerCase()}">${item.rarity}</span></td>
-                <td>${formatShortNotation(cost)}</td>
-                <td style="color: var(--success); font-weight: 600;">+${formatShortNotation(income)}/s</td>
-            `;
-            tbody.appendChild(row);
-        });
-    }
-
-    // 5. Weekly Saturday Update Clock Logic (Europe/Warsaw Baseline)
-    function startUpdateCountdown() {
-        function updateClock() {
-            const now = new Date();
+        function renderBrainrotList() {
+            const grid = document.getElementById('rotGrid');
+            const filter = document.getElementById('rarityFilter').value;
+            const query = document.getElementById('searchBar').value.toLowerCase().trim();
             
-            // Set up target window for this week's Saturday at 19:00 UTC/CET equivalent
-            let target = new Date();
-            target.setUTCHours(17, 0, 0, 0); // 17:00 UTC is 19:00 Central European Summer Time
-            
-            let daysAhead = (6 - now.getUTCDay() + 7) % 7;
-            if (daysAhead === 0 && now.getUTCHours() >= 17) {
-                daysAhead = 7; // Target next Saturday if tonight's deadline passed
+            let mutationMult = getActiveMutationMultiplier();
+            let rebirthMulti = parseFloat(document.getElementById('rebirthMulti').value) || 1;
+            let targetLvl = parseInt(document.getElementById('tarLvl').value) || 75;
+            let currentLvl = parseInt(document.getElementById('curLvl').value) || 1;
+            let rawDailyIncome = parseInput(document.getElementById('dayInc').value);
+
+            if (currentLvl >= targetLvl) currentLvl = 1; 
+            let scaleSteps = targetLvl - 1;
+
+            let recordsFound = 0;
+            let htmlBuffer = '';
+
+            BRAINROT_UPGRADES.forEach(upg => {
+                if (filter !== 'all' && upg.rarity !== filter) return;
+                
+                if (query !== '') {
+                    const matchName = upg.name.toLowerCase().includes(query);
+                    const matchRarity = upg.rarity.toLowerCase().includes(query);
+                    if (!matchName && !matchRarity) return;
+                }
+
+                recordsFound++;
+
+                let rawBaseLvl1 = upg.baseInc * mutationMult;
+                let rawRebirthLvl1 = rawBaseLvl1 * rebirthMulti;
+                let rawBaseMax = rawBaseLvl1 * Math.pow(1.25, scaleSteps);
+                let rawRebirthMax = rawBaseMax * rebirthMulti;
+
+                let individualUpgradeCostSum = 0;
+                let activeBaseCostStep = upg.baseInc * mutationMult; 
+                for (let levelStep = 0; levelStep < scaleSteps; levelStep++) {
+                    individualUpgradeCostSum += activeBaseCostStep;
+                    activeBaseCostStep *= 1.5;
+                }
+
+                let cardTimeString = "-";
+                if (rawDailyIncome > 0) {
+                    let totalHoursNeeded = individualUpgradeCostSum / (rawDailyIncome / 24.0);
+                    if (totalHoursNeeded < 0.01) {
+                        cardTimeString = "Instant";
+                    } else if (totalHoursNeeded < 1) {
+                        cardTimeString = (totalHoursNeeded * 60).toFixed(1) + " mins";
+                    } else if (totalHoursNeeded > 24) {
+                        cardTimeString = (totalHoursNeeded / 24).toFixed(1) + " days";
+                    } else {
+                        cardTimeString = totalHoursNeeded.toFixed(1) + " hours";
+                    }
+                }
+
+                htmlBuffer += `
+                    <div class="rot-item">
+                        <div class="rot-header">
+                            <span class="rot-name">${upg.name}</span>
+                            <div class="rot-meta-block">
+                                <span class="rot-badge badge-${upg.rarity}">${upg.rarity}</span>
+                                <div class="rot-cost-calc-box">
+                                    <div class="rot-cost-amt">${formatOutput(individualUpgradeCostSum)}</div>
+                                    <div class="rot-cost-time">${cardTimeString}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="rot-body-metrics">
+                            <div>Base Level 1: <span>${formatOutput(rawBaseLvl1)}/s</span></div>
+                            <div>Rebirth Multi Base Level 1: <span style="color:var(--text-accent);">${formatOutput(rawRebirthLvl1)}/s</span></div>
+                            <div>Base Max Lvl (Lvl ${targetLvl}): <span>${formatOutput(rawBaseMax)}/s</span></div>
+                            <div>Max Lvl Rebirth Multi (Lvl ${targetLvl}): <span style="color:#2ecc71;">${formatOutput(rawRebirthMax)}/s</span></div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            if (recordsFound === 0) {
+                grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px; opacity: 0.6;">No brainrots match your criteria.</div>`;
+            } else {
+                grid.innerHTML = htmlBuffer;
             }
-            target.setUTCDate(now.getUTCDate() + daysAhead);
-
-            const diff = target - now;
-            
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const secs = Math.floor((diff % (1000 * 60)) / 1000);
-
-            document.getElementById('update-timer').innerText = 
-                `Next Update: ${days}d ${hours}h ${mins}m ${secs}s`;
         }
-        
-        setInterval(updateClock, 1000);
-        updateClock();
-    }
 
-    window.onload = init;
-</script>
+        function runOverrideMath() {
+            let curLvl = parseInt(document.getElementById('curLvl').value);
+            let tarLvl = parseInt(document.getElementById('tarLvl').value);
+            let rawDailyIncome = parseInput(document.getElementById('dayInc').value);
+            let rawCurIncome = parseInput(document.getElementById('curInc').value);
+            let rawCurCost = parseInput(document.getElementById('curCost').value);
+            let rebirthMulti = parseFloat(document.getElementById('rebirthMulti').value) || 1;
+
+            if (isNaN(curLvl) || isNaN(tarLvl) || rawCurIncome <= 0 || curLvl >= tarLvl) return null;
+
+            let totalCost = 0;
+            let tempCost = rawCurCost;
+            let growthFactor = 1;
+
+            for (let i = 0; i < (tarLvl - curLvl); i++) {
+                if (rawCurCost > 0) { totalCost += tempCost; tempCost *= 1.5; }
+                growthFactor *= 1.25;
+            }
+
+            let baseLvl1Stat = rawCurIncome / Math.pow(1.25, (curLvl - 1));
+            let baseIncNoMulti = rawCurIncome * growthFactor; 
+            let finalOutputWithRebirth = baseIncNoMulti * rebirthMulti;
+            let currentOutputWithRebirth = rawCurIncome * rebirthMulti;
+            let dailyNetAddedValue = (finalOutputWithRebirth - currentOutputWithRebirth) * 86400;
+
+            let timeString = "N/A";
+            if (rawDailyIncome > 0 && rawCurCost > 0) {
+                let timeHours = totalCost / (rawDailyIncome / 24.0);
+                timeString = timeHours < 0.01 ? "Instant" : timeHours < 1 ? (timeHours * 60).toFixed(1) + " mins" : timeHours > 24 ? (timeHours / 24).toFixed(1) + " days" : timeHours.toFixed(1) + " hours";
+            }
+
+            return {
+                label: `Lvl ${curLvl} → Lvl ${tarLvl} Build`,
+                lvl1Base: formatOutput(baseLvl1Stat) + "/s",
+                baseInc: formatOutput(baseIncNoMulti) + "/s",
+                finalInc: formatOutput(finalOutputWithRebirth) + "/s",
+                addedDaily: "+" + formatOutput(dailyNetAddedValue),
+                totalCost: rawCurCost > 0 ? formatOutput(totalCost) : "N/A",
+                timeReq: timeString
+            };
+        }
+
+        function calculateOverride() {
+            let res = runOverrideMath();
+            if (!res) return;
+            document.getElementById('resLvl1').innerText = res.lvl1Base;
+            document.getElementById('resBaseInc').innerText = res.baseInc;
+            document.getElementById('resInc').innerText = res.finalInc;
+            document.getElementById('resAddedDaily').innerText = res.addedDaily;
+            document.getElementById('resCost').innerText = res.totalCost;
+            document.getElementById('resTime').innerText = res.timeReq;
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function saveOverrideBuild() {
+            let data = runOverrideMath();
+            if (!data) return;
+            savedBuilds.push(data);
+            localStorage.setItem(SAVE_KEY_BUILDS, JSON.stringify(savedBuilds));
+            renderSavedBuilds();
+        }
+
+        function liveSaveFields() {
+            localStorage.setItem(SAVE_KEY_INCOME, document.getElementById('dayInc').value);
+            localStorage.setItem(SAVE_KEY_REBIRTH, document.getElementById('rebirthMulti').value);
+        }
+
+        function parseInput(valStr) {
+            if (!valStr) return 0;
+            valStr = valStr.toUpperCase().replace(/[\s,$]/g, '');
+            for (let suffix of ['QN', 'SP']) {
+                if (valStr.endsWith(suffix)) return parseFloat(valStr.slice(0, -suffix.length)) * SUFFIXES[suffix];
+            }
+            let lastChar = valStr.slice(-1);
+            if (SUFFIXES[lastChar]) return parseFloat(valStr.slice(0, -1)) * SUFFIXES[lastChar];
+            return parseFloat(valStr) || 0;
+        }
+
+        function formatOutput(num) {
+            if (num === 0) return '0';
+            if (num < 1000) return num.toFixed(2).replace(/\.00$/, '');
+            let sortedKeys = Object.keys(SUFFIXES).sort((a, b) => SUFFIXES[b] - SUFFIXES[a]);
+            for (let key of sortedKeys) {
+                if (num >= SUFFIXES[key]) return (num / SUFFIXES[key]).toFixed(2).replace(/\.00$/, '') + key;
+            }
+            return num.toFixed(2).replace(/\.00$/, '');
+        }
+
+        function deleteBuild(index) {
+            savedBuilds.splice(index, 1);
+            localStorage.setItem(SAVE_KEY_BUILDS, JSON.stringify(savedBuilds));
+            renderSavedBuilds();
+        }
+
+        function renderSavedBuilds() {
+            const list = document.getElementById('savedList');
+            list.innerHTML = '';
+            if (savedBuilds.length === 0) {
+                list.innerHTML = '<div style="color:var(--text-muted); text-align:center; font-size:14px; margin-top:30px; opacity: 0.6;">No configurations saved yet.</div>';
+                return;
+            }
+            savedBuilds.forEach((build, index) => {
+                list.innerHTML += `
+                    <div class="saved-item">
+                        <div class="saved-title-container">
+                            <input class="saved-title" type="text" value="${build.label}" oninput="savedBuilds[${index}].label=this.value; localStorage.setItem(SAVE_KEY_BUILDS, JSON.stringify(savedBuilds));">
+                            <button class="btn-del" onclick="deleteBuild(${index})">✕</button>
+                        </div>
+                        <div class="saved-stats">
+                            <div>Base Level 1: <span>${build.lvl1Base}</span></div>
+                            <div>Base Max Lvl: <span>${build.baseInc}</span></div>
+                            <div>Max Lvl Rebirth Multi: <span style="color:var(--text-accent);">${build.finalInc}</span></div>
+                            <div>Daily Gain: <span style="color:#2ecc71;">${build.addedDaily}</span></div>
+                            <div>Cost: <span>${build.totalCost}</span></div>
+                            <div>Time: <span style="color:var(--border-glow);">${build.timeReq}</span></div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function setTheme(themeKey) {
+            currentlySelectedTheme = themeKey;
+            const theme = THEMES[themeKey];
+            const root = document.documentElement;
+            
+            root.style.setProperty('--bg-main', theme.main);
+            root.style.setProperty('--bg-card', theme.card);
+            root.style.setProperty('--bg-input', theme.input);
+            root.style.setProperty('--border-glow', theme.glow);
+            root.style.setProperty('--text-accent', theme.accent);
+            root.style.setProperty('--text-muted', theme.muted);
+            root.style.setProperty('--card-shadow', theme.shadow);
+            root.style.setProperty('--card-border', theme.border);
+
+            toggleCustomFonts();
+
+            document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+            const activeBtn = document.getElementById(`theme-${themeKey}`);
+            if (activeBtn) activeBtn.classList.add('active');
+        }
+
+        function toggleCustomFonts() {
+            const fontToggle = document.getElementById('fontToggle').checked;
+            const root = document.documentElement;
+            
+            localStorage.setItem(SAVE_KEY_FONTS, fontToggle);
+
+            if (fontToggle && THEMES[currentlySelectedTheme]) {
+                root.style.setProperty('--theme-font', THEMES[currentlySelectedTheme].font);
+            } else {
+                root.style.setProperty('--theme-font', "'Segoe UI', system-ui, -apple-system, sans-serif");
+            }
+        }
+
+        function saveDefaultTheme() {
+            localStorage.setItem(SAVE_KEY_THEME, currentlySelectedTheme);
+            const defBtn = document.getElementById('setDefaultBtn');
+            defBtn.innerText = '✓ Default Set!';
+            setTimeout(() => { defBtn.innerText = 'Use as Default'; }, 2000);
+        }
+    </script>
 </body>
 </html>
