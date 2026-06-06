@@ -240,6 +240,7 @@
         .mutation-row.selected .mutation-cb::after { content: ''; width: 6px; height: 6px; background: var(--bg-main); border-radius: 50%; }
         .mutation-name { font-weight: 600; text-transform: capitalize; flex-grow: 1; }
         .mutation-value { font-family: monospace; color: var(--text-accent); font-weight: 700; }
+        .mutation-tag { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; background: rgba(0, 255, 204, 0.1); color: var(--text-accent); border: 1px solid rgba(0, 255, 204, 0.2); }
 
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .input-group { margin-bottom: 20px; position: relative; }
@@ -286,14 +287,12 @@
         .rot-grid.collapsed { display: none !important; }
         .rot-item { background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(255, 255, 255, 0.03); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
         
-        /* Updated Header layout for Rarity and Cost display metrics */
         .rot-header { display: flex; justify-content: space-between; align-items: flex-start; }
         .rot-name { font-weight: 700; font-size: 14px; color: var(--text-main); }
         
         .rot-meta-block { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
         .rot-badge { font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 6px; text-transform: uppercase; }
 
-        /* Requested styling block for live calculations with no textual labels */
         .rot-cost-calc-box {
             text-align: right;
             font-family: monospace;
@@ -482,6 +481,8 @@
         };
 
         const MUTATIONS_DATA = [
+            { id: 'm00', name: 'heavenly', val: 36, tag: 'only heavenly' },
+            { id: 'm0', name: 'volcanic', val: 35 },
             { id: 'm1', name: 'phantom', val: 35 }, { id: 'm2', name: 'rainbow', val: 30 }, { id: 'm3', name: 'bacon', val: 30 },
             { id: 'm4', name: 'alien', val: 22 }, { id: 'm5', name: 'electrified', val: 16 }, { id: 'm6', name: 'wet', val: 16 },
             { id: 'm7', name: 'shadow', val: 12 }, { id: 'm8', name: 'enchanted', val: 12 }, { id: 'm9', name: 'virus', val: 10 },
@@ -611,9 +612,12 @@
                 const div = document.createElement('div');
                 div.className = 'mutation-row';
                 div.id = `mutrow-${item.id}`;
+                
+                let tagMarkup = item.tag ? `<span class="mutation-tag">${item.tag}</span>` : '';
+                
                 div.innerHTML = `
                     <div class="mutation-cb"></div>
-                    <span class="mutation-name">${item.name}</span>
+                    <span class="mutation-name">${item.name} ${tagMarkup}</span>
                     <span class="mutation-value">${item.val}x</span>
                 `;
                 div.addEventListener('click', () => toggleMutation(item.id));
@@ -713,7 +717,6 @@
                 let rawBaseMax = rawBaseLvl1 * Math.pow(1.25, scaleSteps);
                 let rawRebirthMax = rawBaseMax * rebirthMulti;
 
-                // Mutation applied to the base card scaling cost
                 let individualUpgradeCostSum = 0;
                 let activeBaseCostStep = upg.baseInc * mutationMult; 
                 for (let levelStep = 0; levelStep < scaleSteps; levelStep++) {
@@ -721,7 +724,6 @@
                     activeBaseCostStep *= 1.5;
                 }
 
-                // Individual time calculations
                 let cardTimeString = "-";
                 if (rawDailyIncome > 0) {
                     let totalHoursNeeded = individualUpgradeCostSum / (rawDailyIncome / 24.0);
