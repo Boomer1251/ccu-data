@@ -29,10 +29,42 @@
             margin: 0;
             padding: 0;
             display: flex;
+            flex-direction: column;
             min-height: 100vh;
             box-sizing: border-box;
             transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
             overflow-x: auto;
+        }
+
+        /* Countdown Banner Container */
+        #updateCountdownBanner {
+            display: none; /* Managed dynamically via JavaScript */
+            background: linear-gradient(90deg, rgba(0,0,0,0.4), var(--bg-card), rgba(0,0,0,0.4));
+            border-bottom: 2px solid var(--border-glow);
+            padding: 14px 20px;
+            text-align: center;
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            color: var(--text-main);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        #updateCountdownTimer {
+            color: var(--border-glow);
+            font-family: monospace;
+            font-size: 18px;
+            margin-left: 5px;
+            text-shadow: 0 0 10px rgba(255, 170, 0, 0.2);
+        }
+
+        .main-app-container {
+            display: flex;
+            flex-grow: 1;
+            min-height: 0;
         }
 
         .theme-sidebar {
@@ -46,9 +78,9 @@
             flex-direction: column;
             gap: 10px;
             box-sizing: border-box;
-            height: 100vh;
+            height: calc(100vh - 54px);
             position: sticky;
-            top: 0;
+            top: 54px;
             overflow-y: auto;
         }
 
@@ -141,8 +173,8 @@
         }
 
         @media (max-width: 1300px) {
-            body { flex-direction: column; overflow-x: visible; }
-            .theme-sidebar { width: 100%; min-width: 100%; height: auto; position: relative; border-right: none; border-bottom: var(--card-border); padding: 20px; flex-direction: row; flex-wrap: wrap; align-items: center; }
+            .main-app-container { flex-direction: column; }
+            .theme-sidebar { width: 100%; min-width: 100%; height: auto; position: relative; top: 0; border-right: none; border-bottom: var(--card-border); padding: 20px; flex-direction: row; flex-wrap: wrap; align-items: center; }
             .sidebar-section { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
             .btn-set-default { width: auto; margin-bottom: 0; margin-left: auto; padding: 12px 16px; }
             .workspace-layout { grid-template-columns: 1fr; width: 100%; min-width: 100%; padding: 20px; }
@@ -275,129 +307,135 @@
 </head>
 <body>
 
-    <div class="theme-sidebar">
-        <div class="sidebar-section">
-            <h2>Configs</h2>
-            <button class="btn-set-default" id="setDefaultBtn" onclick="saveDefaultTheme()">Use as Default</button>
-            <div class="settings-toggle-box">
-                <div class="toggle-row">
-                    <span>Theme Custom Fonts</span>
-                    <label class="switch">
-                        <input type="checkbox" id="fontToggle" checked onchange="toggleCustomFonts()">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-            </div>
-        </div>
-        
-        <h2>Themes</h2>
-        <button class="theme-btn active" onclick="setTheme('og')" id="theme-og"><span class="theme-dot" style="color:#ffaa00; background:#ffaa00;"></span> OG Cocoa</button>
-        <button class="theme-btn" onclick="setTheme('void')" id="theme-void"><span class="theme-dot" style="color:#bf5fff; background:#bf5fff;"></span> Purple Void</button>
-        <button class="theme-btn" onclick="setTheme('matrix')" id="theme-matrix"><span class="theme-dot" style="color:#00ff00; background:#00ff00;"></span> Matrix Hack</button>
-        <button class="theme-btn" onclick="setTheme('frost')" id="theme-frost"><span class="theme-dot" style="color:#00bfff; background:#00bfff;"></span> Frostbite</button>
-        <button class="theme-btn" onclick="setTheme('crimson')" id="theme-crimson"><span class="theme-dot" style="color:#ff003c; background:#ff003c;"></span> Crimson Demon</button>
-        <button class="theme-btn" onclick="setTheme('cyberpunk')" id="theme-cyberpunk"><span class="theme-dot" style="color:#ff007f; background:#ff007f;"></span> Neon Cyber</button>
-        <button class="theme-btn" onclick="setTheme('luxury')" id="theme-luxury"><span class="theme-dot" style="color:#d4af37; background:#d4af37;"></span> Royal Gold</button>
-        <button class="theme-btn" onclick="setTheme('toxic')" id="theme-toxic"><span class="theme-dot" style="color:#76ff03; background:#76ff03;"></span> Bio Sludge</button>
-        <button class="theme-btn" onclick="setTheme('synthwave')" id="theme-synthwave"><span class="theme-dot" style="color:#ff5e97; background:#ff5e97;"></span> Outrun 1984</button>
-        <button class="theme-btn" onclick="setTheme('deep')" id="theme-deep"><span class="theme-dot" style="color:#00ffff; background:#00ffff;"></span> Subnautica Deep</button>
-        <button class="theme-btn" onclick="setTheme('vampire')" id="theme-vampire"><span class="theme-dot" style="color:#da0000; background:#da0000;"></span> Vampire Castle</button>
-        <button class="theme-btn" onclick="setTheme('retro')" id="theme-retro"><span class="theme-dot" style="color:#ff00f0; background:#ff00f0;"></span> Retrowave Dream</button>
-        <button class="theme-btn" onclick="setTheme('orange')" id="theme-orange"><span class="theme-dot" style="color:#ff6f00; background:#ff6f00;"></span> Overwatch Orange</button>
-        <button class="theme-btn" onclick="setTheme('cyber2')" id="theme-cyber2"><span class="theme-dot" style="color:#00ffaa; background:#00ffaa;"></span> Cyber Cyberpunk</button>
-        <button class="theme-btn" onclick="setTheme('astro')" id="theme-astro"><span class="theme-dot" style="color:#38ef7d; background:#38ef7d;"></span> Astro Deep Space</button>
-        <button class="theme-btn" onclick="setTheme('nuclear')" id="theme-nuclear"><span class="theme-dot" style="color:#a8ff78; background:#a8ff78;"></span> Nuclear Slime</button>
-        <button class="theme-btn" onclick="setTheme('rosegold')" id="theme-rosegold"><span class="theme-dot" style="color:#b33939; background:#b33939;"></span> Rose Gold Quartz</button>
-        <button class="theme-btn" onclick="setTheme('ghost')" id="theme-ghost"><span class="theme-dot" style="color:#706fd3; background:#706fd3;"></span> Ghostly Haunt</button>
-        <button class="theme-btn" onclick="setTheme('mono')" id="theme-mono"><span class="theme-dot" style="color:#ffffff; background:#ffffff;"></span> Minimal Slate</button>
+    <div id="updateCountdownBanner">
+        Update in <span id="updateCountdownTimer">00d 00h 00m 00s</span> !
     </div>
 
-    <div class="workspace-layout">
-        <div class="mutations-card">
-            <h2>Mutations</h2>
-            <div class="mutation-grid" id="mutationGrid"></div>
+    <div class="main-app-container">
+        <div class="theme-sidebar">
+            <div class="sidebar-section">
+                <h2>Configs</h2>
+                <button class="btn-set-default" id="setDefaultBtn" onclick="saveDefaultTheme()">Use as Default</button>
+                <div class="settings-toggle-box">
+                    <div class="toggle-row">
+                        <span>Theme Custom Fonts</span>
+                        <label class="switch">
+                            <input type="checkbox" id="fontToggle" checked onchange="toggleCustomFonts()">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <h2>Themes</h2>
+            <button class="theme-btn active" onclick="setTheme('og')" id="theme-og"><span class="theme-dot" style="color:#ffaa00; background:#ffaa00;"></span> OG Cocoa</button>
+            <button class="theme-btn" onclick="setTheme('void')" id="theme-void"><span class="theme-dot" style="color:#bf5fff; background:#bf5fff;"></span> Purple Void</button>
+            <button class="theme-btn" onclick="setTheme('matrix')" id="theme-matrix"><span class="theme-dot" style="color:#00ff00; background:#00ff00;"></span> Matrix Hack</button>
+            <button class="theme-btn" onclick="setTheme('frost')" id="theme-frost"><span class="theme-dot" style="color:#00bfff; background:#00bfff;"></span> Frostbite</button>
+            <button class="theme-btn" onclick="setTheme('crimson')" id="theme-crimson"><span class="theme-dot" style="color:#ff003c; background:#ff003c;"></span> Crimson Demon</button>
+            <button class="theme-btn" onclick="setTheme('cyberpunk')" id="theme-cyberpunk"><span class="theme-dot" style="color:#ff007f; background:#ff007f;"></span> Neon Cyber</button>
+            <button class="theme-btn" onclick="setTheme('luxury')" id="theme-luxury"><span class="theme-dot" style="color:#d4af37; background:#d4af37;"></span> Royal Gold</button>
+            <button class="theme-btn" onclick="setTheme('toxic')" id="theme-toxic"><span class="theme-dot" style="color:#76ff03; background:#76ff03;"></span> Bio Sludge</button>
+            <button class="theme-btn" onclick="setTheme('synthwave')" id="theme-synthwave"><span class="theme-dot" style="color:#ff5e97; background:#ff5e97;"></span> Outrun 1984</button>
+            <button class="theme-btn" onclick="setTheme('deep')" id="theme-deep"><span class="theme-dot" style="color:#00ffff; background:#00ffff;"></span> Subnautica Deep</button>
+            <button class="theme-btn" onclick="setTheme('vampire')" id="theme-vampire"><span class="theme-dot" style="color:#da0000; background:#da0000;"></span> Vampire Castle</button>
+            <button class="theme-btn" onclick="setTheme('retro')" id="theme-retro"><span class="theme-dot" style="color:#ff00f0; background:#ff00f0;"></span> Retrowave Dream</button>
+            <button class="theme-btn" onclick="setTheme('orange')" id="theme-orange"><span class="theme-dot" style="color:#ff6f00; background:#ff6f00;"></span> Overwatch Orange</button>
+            <button class="theme-btn" onclick="setTheme('cyber2')" id="theme-cyber2"><span class="theme-dot" style="color:#00ffaa; background:#00ffaa;"></span> Cyber Cyberpunk</button>
+            <button class="theme-btn" onclick="setTheme('astro')" id="theme-astro"><span class="theme-dot" style="color:#38ef7d; background:#38ef7d;"></span> Astro Deep Space</button>
+            <button class="theme-btn" onclick="setTheme('nuclear')" id="theme-nuclear"><span class="theme-dot" style="color:#a8ff78; background:#a8ff78;"></span> Nuclear Slime</button>
+            <button class="theme-btn" onclick="setTheme('rosegold')" id="theme-rosegold"><span class="theme-dot" style="color:#b33939; background:#b33939;"></span> Rose Gold Quartz</button>
+            <button class="theme-btn" onclick="setTheme('ghost')" id="theme-ghost"><span class="theme-dot" style="color:#706fd3; background:#706fd3;"></span> Ghostly Haunt</button>
+            <button class="theme-btn" onclick="setTheme('mono')" id="theme-mono"><span class="theme-dot" style="color:#ffffff; background:#ffffff;"></span> Minimal Slate</button>
         </div>
 
-        <div class="calculator-card">
-            <h2>Brainrot Calculator</h2>
-            <div class="grid-2">
-                <div class="input-group">
-                    <label>Daily Offline Income Pool</label>
-                    <input type="text" id="dayInc" value="" placeholder="e.g. 1.1S" oninput="globalInputsUpdated()">
-                </div>
-                <div class="input-group">
-                    <label>Rebirth Multiplier</label>
-                    <input type="number" id="rebirthMulti" value="" placeholder="e.g. 1" min="1" step="0.1" oninput="globalInputsUpdated()">
-                </div>
-            </div>
-            <div class="grid-2">
-                <div class="input-group">
-                    <label>Brainrot Current Level</label>
-                    <input type="number" id="curLvl" value="" placeholder="e.g. 1" oninput="globalInputsUpdated()">
-                </div>
-                <div class="input-group">
-                    <label>Brainrot Target Level</label>
-                    <input type="number" id="tarLvl" value="75" oninput="globalInputsUpdated()">
-                </div>
-            </div>
-            <div class="grid-2">
-                <div class="input-group">
-                    <label>Override Income/s</label>
-                    <input type="text" id="curInc" value="" placeholder="e.g. 420.3K" oninput="globalInputsUpdated()">
-                </div>
-                <div class="input-group">
-                    <label>Override Base Cost</label>
-                    <input type="text" id="curCost" value="" placeholder="e.g. 15" oninput="globalInputsUpdated()">
-                </div>
-            </div>
-            <div class="btn-flex">
-                <button class="action-btn btn-calc" onclick="calculateOverride()">Calculate Manual Entry</button>
-                <button class="action-btn btn-save" onclick="saveOverrideBuild()">Save Build</button>
+        <div class="workspace-layout">
+            <div class="mutations-card">
+                <h2>Mutations</h2>
+                <div class="mutation-grid" id="mutationGrid"></div>
             </div>
 
-            <div id="results">
-                <div class="res-grid-mini">
-                    <div class="mini-stat-box"><span class="mini-label">Base Level 1</span><span id="resLvl1" class="mini-val" style="color: #ffda79;">-</span></div>
-                    <div class="mini-stat-box"><span class="mini-label">Base Max Lvl</span><span id="resBaseInc" class="mini-val" style="color: #bdc581;">-</span></div>
-                    <div class="mini-stat-box"><span class="mini-label">Max Lvl Rebirth Multi</span><span id="resInc" class="mini-val" style="color: var(--text-accent);">-</span></div>
-                    <div class="mini-stat-box"><span class="mini-label">Daily Gain</span><span id="resAddedDaily" class="mini-val" style="color: #2ecc71;">-</span></div>
-                    <div class="mini-stat-box"><span class="mini-label">Total Cost</span><span id="resCost" class="mini-val">-</span></div>
-                    <div class="mini-stat-box"><span class="mini-label">Time Req</span><span id="resTime" class="mini-val" style="color: var(--border-glow);">-</span></div>
+            <div class="calculator-card">
+                <h2>Brainrot Calculator</h2>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label>Daily Offline Income Pool</label>
+                        <input type="text" id="dayInc" value="" placeholder="e.g. 1.1S" oninput="globalInputsUpdated()">
+                    </div>
+                    <div class="input-group">
+                        <label>Rebirth Multiplier</label>
+                        <input type="number" id="rebirthMulti" value="" placeholder="e.g. 1" min="1" step="0.1" oninput="globalInputsUpdated()">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label>Brainrot Current Level</label>
+                        <input type="number" id="curLvl" value="" placeholder="e.g. 1" oninput="globalInputsUpdated()">
+                    </div>
+                    <div class="input-group">
+                        <label>Brainrot Target Level</label>
+                        <input type="number" id="tarLvl" value="75" oninput="globalInputsUpdated()">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="input-group">
+                        <label>Override Income/s</label>
+                        <input type="text" id="curInc" value="" placeholder="e.g. 420.3K" oninput="globalInputsUpdated()">
+                    </div>
+                    <div class="input-group">
+                        <label>Override Base Cost</label>
+                        <input type="text" id="curCost" value="" placeholder="e.g. 15" oninput="globalInputsUpdated()">
+                    </div>
+                </div>
+                <div class="btn-flex">
+                    <button class="action-btn btn-calc" onclick="calculateOverride()">Calculate Manual Entry</button>
+                    <button class="action-btn btn-save" onclick="saveOverrideBuild()">Save Build</button>
+                </div>
+
+                <div id="results">
+                    <div class="res-grid-mini">
+                        <div class="mini-stat-box"><span class="mini-label">Base Level 1</span><span id="resLvl1" class="mini-val" style="color: #ffda79;">-</span></div>
+                        <div class="mini-stat-box"><span class="mini-label">Base Max Lvl</span><span id="resBaseInc" class="mini-val" style="color: #bdc581;">-</span></div>
+                        <div class="mini-stat-box"><span class="mini-label">Max Lvl Rebirth Multi</span><span id="resInc" class="mini-val" style="color: var(--text-accent);">-</span></div>
+                        <div class="mini-stat-box"><span class="mini-label">Daily Gain</span><span id="resAddedDaily" class="mini-val" style="color: #2ecc71;">-</span></div>
+                        <div class="mini-stat-box"><span class="mini-label">Total Cost</span><span id="resCost" class="mini-val">-</span></div>
+                        <div class="mini-stat-box"><span class="mini-label">Time Req</span><span id="resTime" class="mini-val" style="color: var(--border-glow);">-</span></div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="saved-card">
-            <h2>Saved Configurations</h2>
-            <div class="saved-list" id="savedList"></div>
-        </div>
-
-        <div class="rot-card">
-            <div class="list-header-controls">
-                <div class="list-header-title-area">
-                    <h2>Brainrot Upgrades Management Grid</h2>
-                    <button class="btn-toggle-list" id="toggleListBtn" onclick="toggleBrainrotGrid()">Hide List</button>
-                </div>
-                <div class="search-controls-wrapper" id="searchControls">
-                    <input type="text" id="searchBar" class="search-input" placeholder="Search upgrade name or rarity..." oninput="renderBrainrotList()">
-                    <select id="rarityFilter" class="filter-select" onchange="renderBrainrotList()">
-                        <option value="all">All Rarities</option>
-                        <option value="noobini">Noobini</option>
-                        <option value="rare">Rare</option>
-                        <option value="epic">Epic</option>
-                        <option value="legendary">Legendary</option>
-                        <option value="mythic">Mythic</option>
-                        <option value="godly">Godly</option>
-                        <option value="secret">Secret</option>
-                        <option value="divine">Divine</option>
-                        <option value="hacked">Hacked</option>
-                        <option value="og">OG</option>
-                        <option value="celestial">Celestial</option>
-                        <option value="eternal">Eternal</option>
-                    </select>
-                </div>
+            <div class="saved-card">
+                <h2>Saved Configurations</h2>
+                <div class="saved-list" id="savedList"></div>
             </div>
-            <div class="rot-grid" id="rotGrid"></div>
+
+            <div class="rot-card">
+                <div class="list-header-controls">
+                    <div class="list-header-title-area">
+                        <h2>Brainrot Upgrades Management Grid</h2>
+                        <button class="btn-toggle-list" id="toggleListBtn" onclick="toggleBrainrotGrid()">Hide List</button>
+                    </div>
+                    <div class="search-controls-wrapper" id="searchControls">
+                        <input type="text" id="searchBar" class="search-input" placeholder="Search upgrade name or rarity..." oninput="renderBrainrotList()">
+                        <select id="rarityFilter" class="filter-select" onchange="renderBrainrotList()">
+                            <option value="all">All Rarities</option>
+                            <option value="noobini">Noobini</option>
+                            <option value="rare">Rare</option>
+                            <option value="epic">Epic</option>
+                            <option value="legendary">Legendary</option>
+                            <option value="mythic">Mythic</option>
+                            <option value="godly">Godly</option>
+                            <option value="secret">Secret</option>
+                            <option value="divine">Divine</option>
+                            <option value="hacked">Hacked</option>
+                            <option value="og">OG</option>
+                            <option value="celestial">Celestial</option>
+                            <option value="eternal">Eternal</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="rot-grid" id="rotGrid"></div>
+            </div>
         </div>
     </div>
 
@@ -418,7 +456,6 @@
             vampire: { main: '#0f0202', card: '#210505', input: '#380a0a', glow: '#da0000', accent: '#ff5252', muted: '#9e6262', shadow: '0 12px 45px rgba(218, 0, 0, 0.2)', border: '1px solid rgba(218, 0, 0, 0.15)', font: 'Times New Roman' },
             retro: { main: '#12041c', card: '#240a36', input: '#3b1154', glow: '#ff00f0', accent: '#00ffff', muted: '#a170c4', shadow: '0 12px 40px rgba(255, 0, 240, 0.2)', border: '1px solid rgba(255, 0, 240, 0.12)', font: 'Impact' },
             orange: { main: '#120e0a', card: '#241a12', input: '#382719', glow: '#ff6f00', accent: '#ffffff', muted: '#a88c74', shadow: '0 12px 40px rgba(255, 111, 0, 0.15)', border: '1px solid rgba(255, 111, 0, 0.12)', font: 'Impact' },
-            // NEW VARIANT PRESETS ADDED BELOW
             cyber2: { main: '#050c12', card: '#0c1924', input: '#142738', glow: '#00ffaa', accent: '#00e1ff', muted: '#7093a8', shadow: '0 12px 40px rgba(0, 255, 170, 0.15)', border: '1px solid rgba(0, 255, 170, 0.1)', font: 'Segoe UI' },
             astro: { main: '#0a0a14', card: '#121226', input: '#1d1d3d', glow: '#38ef7d', accent: '#11998e', muted: '#8383a3', shadow: '0 12px 40px rgba(56, 239, 125, 0.15)', border: '1px solid rgba(56, 239, 125, 0.1)', font: 'Arial' },
             nuclear: { main: '#0b1205', card: '#16240c', input: '#243b15', glow: '#a8ff78', accent: '#78ffd6', muted: '#879e78', shadow: '0 12px 40px rgba(168, 255, 120, 0.15)', border: '1px solid rgba(168, 255, 120, 0.1)', font: 'Lucida Sans' },
@@ -491,7 +528,62 @@
 
             renderMutationsList();
             renderBrainrotList();
+
+            // Start running the Saturday 7 PM CET engine immediately
+            initSaturdayCountdown();
         };
+
+        /* Real-Time Universal Saturday 19:00 CET Countdown Engine */
+        function initSaturdayCountdown() {
+            function updateClock() {
+                const now = new Date();
+                
+                // Track Saturday target parameters explicitly using UTC calculations 
+                // 7:00 PM Central European Time (CET) sits consistently at UTC 18:00
+                let nextUpdate = new Date(now);
+                nextUpdate.setUTCHours(18, 0, 0, 0); 
+                
+                // Shift target to the upcoming target week day index 6 (Saturday)
+                let daysToSaturday = (6 - now.getUTCDay() + 7) % 7;
+                
+                if (daysToSaturday === 0 && now.getUTCHours() >= 18) {
+                    daysToSaturday = 7; 
+                }
+                
+                nextUpdate.setUTCDate(now.getUTCDate() + daysToSaturday);
+                
+                const timeRemainingMs = nextUpdate - now;
+                const threeDaysInMs = 3 * 24 * 60 * 60 * 1000;
+
+                const banner = document.getElementById('updateCountdownBanner');
+                const timerSpan = document.getElementById('updateCountdownTimer');
+
+                // Evaluate display eligibility window rule criteria dynamically
+                if (timeRemainingMs <= threeDaysInMs && timeRemainingMs > 0) {
+                    banner.style.display = 'block';
+                    
+                    // Break down duration variables cleanly
+                    const totalSecs = Math.floor(timeRemainingMs / 1000);
+                    const days = Math.floor(totalSecs / (24 * 3600));
+                    const hours = Math.floor((totalSecs % (24 * 3600)) / 3600);
+                    const mins = Math.floor((totalSecs % 3600) / 60);
+                    const secs = totalSecs % 60;
+
+                    // Pad formatting profiles safely
+                    const dStr = String(days).padStart(2, '0');
+                    const hStr = String(hours).padStart(2, '0');
+                    const mStr = String(mins).padStart(2, '0');
+                    const sStr = String(secs).padStart(2, '0');
+
+                    timerSpan.innerText = `${dStr}d ${hStr}h ${mStr}m ${sStr}s`;
+                } else {
+                    banner.style.display = 'none';
+                }
+            }
+            
+            updateClock();
+            setInterval(updateClock, 1000);
+        }
 
         function renderMutationsList() {
             const grid = document.getElementById('mutationGrid');
@@ -512,7 +604,6 @@
 
         function toggleMutation(id) {
             const currentSelected = document.getElementById(`mutrow-${id}`);
-            
             if (selectedMutationId === id) {
                 currentSelected.classList.remove('selected');
                 selectedMutationId = null;
@@ -745,7 +836,6 @@
             root.style.setProperty('--card-shadow', theme.shadow);
             root.style.setProperty('--card-border', theme.border);
 
-            // Trigger dynamic font stack configuration evaluation
             toggleCustomFonts();
 
             document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
