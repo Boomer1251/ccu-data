@@ -451,7 +451,7 @@
             cyberpunk: { main: '#0b0914', card: '#141126', input: '#1e193a', glow: '#ff007f', accent: '#00f6ff', muted: '#777196', shadow: '0 15px 45px rgba(255, 0, 127, 0.2)', border: '1px solid rgba(255, 0, 127, 0.15)', font: 'Trebuchet MS' },
             luxury: { main: '#0d0d0d', card: '#1a1a1a', input: '#262626', glow: '#d4af37', accent: '#ffffff', muted: '#8c8c8c', shadow: '0 25px 55px rgba(0, 0, 0, 0.85)', border: '1px solid rgba(212, 175, 55, 0.25)', font: 'Georgia' },
             toxic: { main: '#0d0f0c', card: '#161a14', input: '#20261d', glow: '#76ff03', accent: '#eeff41', muted: '#7b8776', shadow: '0 12px 35px rgba(118, 255, 3, 0.12)', border: '1px solid rgba(118, 255, 3, 0.08)', font: 'Lucida Sans' },
-            synthwave: { main: '#1a0933', card: '#271247', input: '#3a1b69', glow: '#ff5e97', accent: '#fefe66', muted: '#a183ca', shadow: '0 12px 40px rgba(255, 94, 151, 0.18)', border: '1px solid rgba(254, 254, 102, 0.12)', font: 'Trebuchet MS' },
+            synthwave: { main: '#1a0933', card: '#271247', input: '#3a1b69', glow: '#ff5e97', accent: '#fefe66', muted: '#a183ca', shadow: '0 12px 40px rgba(255, 94, 151, 0.18)', border: '1px solid rgba(255, 94, 151, 0.12)', font: 'Trebuchet MS' },
             deep: { main: '#01111a', card: '#032336', input: '#053552', glow: '#00ffff', accent: '#00ffaa', muted: '#417d9e', shadow: '0 12px 40px rgba(0, 255, 255, 0.15)', border: '1px solid rgba(0, 255, 255, 0.1)', font: 'Segoe UI' },
             vampire: { main: '#0f0202', card: '#210505', input: '#380a0a', glow: '#da0000', accent: '#ff5252', muted: '#9e6262', shadow: '0 12px 45px rgba(218, 0, 0, 0.2)', border: '1px solid rgba(218, 0, 0, 0.15)', font: 'Times New Roman' },
             retro: { main: '#12041c', card: '#240a36', input: '#3b1154', glow: '#ff00f0', accent: '#00ffff', muted: '#a170c4', shadow: '0 12px 40px rgba(255, 0, 240, 0.2)', border: '1px solid rgba(255, 0, 240, 0.12)', font: 'Impact' },
@@ -529,47 +529,57 @@
             renderMutationsList();
             renderBrainrotList();
 
-            // Start running the Saturday 7 PM CET engine immediately
+            // Run live Saturday 7:00 PM CET/CEST engine updates
             initSaturdayCountdown();
         };
 
-        /* Real-Time Universal Saturday 19:00 CET Countdown Engine */
+        /* Automatically accounts for Daylight Savings changes (CET vs CEST) */
         function initSaturdayCountdown() {
             function updateClock() {
                 const now = new Date();
                 
-                // Track Saturday target parameters explicitly using UTC calculations 
-                // 7:00 PM Central European Time (CET) sits consistently at UTC 18:00
+                // Track standard timezone offset for Central Europe dynamically 
+                // Checks whether a standard target date in Europe falls into DST bounds
+                const targetTimeZone = 'Europe/Warsaw'; 
+                
+                // Establish upcoming target mapping parameters
                 let nextUpdate = new Date(now);
-                nextUpdate.setUTCHours(18, 0, 0, 0); 
+                nextUpdate.setHours(19, 0, 0, 0); // 7:00 PM Local Time
                 
-                // Shift target to the upcoming target week day index 6 (Saturday)
-                let daysToSaturday = (6 - now.getUTCDay() + 7) % 7;
+                let daysToSaturday = (6 - now.getDay() + 7) % 7;
                 
-                if (daysToSaturday === 0 && now.getUTCHours() >= 18) {
-                    daysToSaturday = 7; 
+                // If it is Saturday but past 7 PM, push target index forward to next week
+                if (daysToSaturday === 0) {
+                    const currentTargetCheck = new Date(now.toLocaleString('en-US', { timeZone: targetTimeZone }));
+                    if (currentTargetCheck.getHours() >= 19) {
+                        daysToSaturday = 7;
+                    }
                 }
                 
-                nextUpdate.setUTCDate(now.getUTCDate() + daysToSaturday);
+                nextUpdate.setDate(now.getDate() + daysToSaturday);
+
+                // Re-align explicitly to match Target Timezone offsets precisely
+                const localizedTargetStr = nextUpdate.toLocaleString('en-US', { timeZone: targetTimeZone });
+                const localizedTargetObj = new Date(localizedTargetStr);
+                const localDiff = nextUpdate.getTime() - localizedTargetObj.getTime();
                 
-                const timeRemainingMs = nextUpdate - now;
+                // Final calculation anchor points
+                const definitiveTarget = new Date(nextUpdate.getTime() + localDiff);
+                const timeRemainingMs = definitiveTarget - now;
                 const threeDaysInMs = 3 * 24 * 60 * 60 * 1000;
 
                 const banner = document.getElementById('updateCountdownBanner');
                 const timerSpan = document.getElementById('updateCountdownTimer');
 
-                // Evaluate display eligibility window rule criteria dynamically
                 if (timeRemainingMs <= threeDaysInMs && timeRemainingMs > 0) {
                     banner.style.display = 'block';
                     
-                    // Break down duration variables cleanly
                     const totalSecs = Math.floor(timeRemainingMs / 1000);
                     const days = Math.floor(totalSecs / (24 * 3600));
                     const hours = Math.floor((totalSecs % (24 * 3600)) / 3600);
                     const mins = Math.floor((totalSecs % 3600) / 60);
                     const secs = totalSecs % 60;
 
-                    // Pad formatting profiles safely
                     const dStr = String(days).padStart(2, '0');
                     const hStr = String(hours).padStart(2, '0');
                     const mStr = String(mins).padStart(2, '0');
