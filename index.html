@@ -18,11 +18,12 @@
             --btn-danger: #e74c3c;
             --card-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
             --card-border: 1px solid rgba(255, 255, 255, 0.04);
+            --theme-font: 'Segoe UI', system-ui, -apple-system, sans-serif;
             --transition-speed: 0.2s;
         }
 
         body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-family: var(--theme-font);
             background-color: var(--bg-main);
             color: var(--text-main);
             margin: 0;
@@ -30,16 +31,16 @@
             display: flex;
             min-height: 100vh;
             box-sizing: border-box;
-            transition: background-color var(--transition-speed) ease;
+            transition: background-color var(--transition-speed) ease, color var(--transition-speed) ease;
             overflow-x: auto;
         }
 
         .theme-sidebar {
-            width: 220px;
-            min-width: 220px;
+            width: 240px;
+            min-width: 240px;
             background: var(--bg-card);
             border-right: var(--card-border);
-            padding: 30px 18px;
+            padding: 25px 15px;
             box-shadow: var(--card-shadow);
             display: flex;
             flex-direction: column;
@@ -52,7 +53,13 @@
         }
 
         .theme-sidebar::-webkit-scrollbar { width: 4px; }
-        .theme-sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 4px; }
+        .theme-sidebar::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 4px; }
+
+        .sidebar-section {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 15px;
+            margin-bottom: 5px;
+        }
 
         .btn-set-default {
             width: 100%;
@@ -66,20 +73,69 @@
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-bottom: 15px;
+            margin-bottom: 10px;
             text-align: center;
             box-sizing: border-box;
+            transition: all var(--transition-speed) ease;
         }
 
         .btn-set-default:hover { background-color: var(--border-glow); color: var(--bg-main); }
 
+        .settings-toggle-box {
+            background: rgba(0,0,0,0.2);
+            border-radius: 10px;
+            padding: 12px;
+            border: 1px solid rgba(255,255,255,0.02);
+        }
+
+        .toggle-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 34px;
+            height: 20px;
+        }
+
+        .switch input { opacity: 0; width: 0; height: 0; }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--bg-input);
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: .2s;
+            border-radius: 20px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 12px; width: 12px;
+            left: 3px; bottom: 3px;
+            background-color: var(--text-muted);
+            transition: .2s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider { background-color: var(--border-glow); border-color: transparent;}
+        input:checked + .slider:before { transform: translateX(14px); background-color: var(--bg-main); }
+
         .workspace-layout {
             display: grid;
-            grid-template-columns: 280px minmax(550px, 1fr) 320px;
+            grid-template-columns: 290px minmax(550px, 1fr) 320px;
             gap: 25px;
             padding: 40px 30px;
             flex-grow: 1;
-            width: calc(100% - 220px);
+            width: calc(100% - 240px);
             min-width: 1150px;
             box-sizing: border-box;
         }
@@ -87,6 +143,7 @@
         @media (max-width: 1300px) {
             body { flex-direction: column; overflow-x: visible; }
             .theme-sidebar { width: 100%; min-width: 100%; height: auto; position: relative; border-right: none; border-bottom: var(--card-border); padding: 20px; flex-direction: row; flex-wrap: wrap; align-items: center; }
+            .sidebar-section { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
             .btn-set-default { width: auto; margin-bottom: 0; margin-left: auto; padding: 12px 16px; }
             .workspace-layout { grid-template-columns: 1fr; width: 100%; min-width: 100%; padding: 20px; }
         }
@@ -98,6 +155,7 @@
             padding: 30px;
             box-shadow: var(--card-shadow);
             height: fit-content;
+            transition: background var(--transition-speed) ease, border var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
         }
 
         .mutations-card { padding: 20px; }
@@ -106,7 +164,7 @@
         h2 {
             margin-top: 0;
             margin-bottom: 25px;
-            font-size: 18px;
+            font-size: 17px;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1.5px;
@@ -118,7 +176,7 @@
 
         .theme-btn {
             width: 100%;
-            padding: 12px 14px;
+            padding: 11px 14px;
             border-radius: 12px;
             border: 1px solid rgba(255, 255, 255, 0.02);
             background: var(--bg-input);
@@ -130,22 +188,22 @@
             align-items: center;
             gap: 12px;
             box-sizing: border-box;
+            transition: all 0.15s ease;
         }
 
         .theme-btn:hover { border-color: var(--border-glow); background: rgba(255, 255, 255, 0.02); }
-        .theme-btn.active { border-color: var(--border-glow); background: rgba(255, 255, 255, 0.05); }
+        .theme-btn.active { border-color: var(--border-glow); background: rgba(255, 255, 255, 0.05); box-shadow: inset 0 0 8px rgba(255,255,255,0.02); }
         .theme-dot { width: 10px; height: 10px; border-radius: 50%; box-shadow: 0 0 8px currentColor; flex-shrink: 0; }
 
         .mutation-grid { display: grid; grid-template-columns: 1fr; gap: 8px; max-height: 520px; overflow-y: auto; padding-right: 4px; }
         .mutation-grid::-webkit-scrollbar { width: 4px; }
-        .mutation-grid::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+        .mutation-grid::-webkit-scrollbar-thumb { background: var(--border-glow); border-radius: 4px; }
 
-        .mutation-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: rgba(0, 0, 0, 0.15); border-radius: 10px; font-size: 13px; border: 1px solid rgba(255, 255, 255, 0.02); cursor: pointer; user-select: none; }
+        .mutation-row { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: rgba(0, 0, 0, 0.15); border-radius: 10px; font-size: 13px; border: 1px solid rgba(255, 255, 255, 0.02); cursor: pointer; user-select: none; transition: all 0.15s ease; }
         .mutation-row:hover { background: rgba(255, 255, 255, 0.02); border-color: rgba(255, 255, 255, 0.08); }
-        .mutation-row.selected { border-color: var(--border-glow); background: rgba(255, 170, 0, 0.04); }
+        .mutation-row.selected { border-color: var(--border-glow); background: rgba(255, 255, 255, 0.02); box-shadow: 0 0 10px rgba(0,0,0,0.2); }
         
-        /* Checkbox styling now utilizes theme accent variables cleanly */
-        .mutation-cb { appearance: none; width: 16px; height: 16px; border: 2px solid var(--text-muted); border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.1s ease; }
+        .mutation-cb { appearance: none; width: 16px; height: 16px; border: 2px solid var(--text-muted); border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all 0.12s ease; }
         .mutation-row.selected .mutation-cb { border-color: var(--border-glow); background: var(--border-glow); }
         .mutation-row.selected .mutation-cb::after { content: ''; width: 6px; height: 6px; background: var(--bg-main); border-radius: 50%; }
         .mutation-name { font-weight: 600; text-transform: capitalize; flex-grow: 1; }
@@ -153,14 +211,15 @@
 
         .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
         .input-group { margin-bottom: 20px; position: relative; }
-        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 13px; text-transform: uppercase; color: var(--text-muted); }
-        input, select { width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.08); background-color: var(--bg-input); color: var(--text-main); font-size: 16px; font-weight: 500; box-sizing: border-box; }
-        input:focus, select:focus { outline: none; border-color: var(--border-glow); box-shadow: 0 0 12px rgba(255, 170, 0, 0.15); }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 12px; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.5px; }
+        input, select { width: 100%; padding: 14px 16px; border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.08); background-color: var(--bg-input); color: var(--text-main); font-size: 15px; font-weight: 500; box-sizing: border-box; transition: all var(--transition-speed) ease; font-family: inherit; }
+        input:focus, select:focus { outline: none; border-color: var(--border-glow); box-shadow: 0 0 12px rgba(255, 170, 0, 0.1); }
 
         .btn-flex { display: flex; gap: 15px; margin-top: 25px; }
-        button.action-btn { padding: 16px 24px; color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; text-transform: uppercase; flex: 1; }
-        .btn-calc { background-color: var(--btn-success); flex: 2; }
-        .btn-save { background-color: var(--btn-primary); }
+        button.action-btn { padding: 16px 24px; color: white; border: none; border-radius: 12px; font-size: 14px; font-weight: 700; cursor: pointer; text-transform: uppercase; flex: 1; transition: opacity 0.15s ease; font-family: inherit; }
+        button.action-btn:hover { opacity: 0.9; }
+        .btn-calc { background-color: var(--btn-success); flex: 2; box-shadow: 0 4px 12px rgba(46, 204, 113, 0.2); }
+        .btn-save { background-color: var(--btn-primary); box-shadow: 0 4px 12px rgba(52, 152, 219, 0.2); }
 
         #results { margin-top: 30px; padding: 20px; background-color: rgba(0, 0, 0, 0.2); border-top: 1px dashed rgba(255, 255, 255, 0.08); border-bottom: 1px dashed rgba(255, 255, 255, 0.08); display: none; }
         .res-grid-mini { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px 24px; }
@@ -172,7 +231,7 @@
         .saved-list { margin-top: 5px; max-height: 550px; overflow-y: auto; padding-right: 4px; }
         .saved-item { background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(255, 255, 255, 0.03); border-radius: 14px; padding: 16px; margin-bottom: 16px; }
         .saved-title-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .saved-title { color: var(--border-glow); font-weight: 700; background: transparent; border: none; border-bottom: 1px solid transparent; font-size: 14px; width: 80%; }
+        .saved-title { color: var(--border-glow); font-weight: 700; background: transparent; border: none; border-bottom: 1px solid transparent; font-size: 14px; width: 80%; padding: 2px 0; }
         .btn-del { background: transparent; border: 1px solid rgba(231, 76, 60, 0.3); color: var(--btn-danger); border-radius: 8px; width: 26px; height: 26px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; }
 
         .saved-stats { font-size: 12px; color: var(--text-main); display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px; }
@@ -180,7 +239,6 @@
 
         .rot-card { grid-column: 1 / -1; margin-top: 10px; }
         
-        /* Cleaned layout positioning for layout stability */
         .list-header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; gap: 20px; flex-wrap: wrap; width: 100%; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 12px;}
         .list-header-title-area { display: flex; align-items: center; gap: 15px; flex-grow: 1; }
         .list-header-title-area h2 { border-bottom: none; margin-bottom: 0; padding-bottom: 0; width: auto; }
@@ -188,29 +246,28 @@
         .search-input { padding: 10px 14px; font-size: 14px; border-radius: 10px; flex-grow: 2; }
         .filter-select { width: auto; min-width: 180px; padding: 10px 14px; font-size: 14px; border-radius: 10px; flex-grow: 1; }
         
-        /* Locked visibility modifier button tracking properties */
-        .btn-toggle-list { background: transparent; border: 1px solid var(--border-glow); color: var(--border-glow); padding: 8px 16px; font-size: 12px; font-weight: 700; border-radius: 8px; cursor: pointer; text-transform: uppercase; white-space: nowrap; height: fit-content; }
+        .btn-toggle-list { background: transparent; border: 1px solid var(--border-glow); color: var(--border-glow); padding: 8px 16px; font-size: 11px; font-weight: 700; border-radius: 8px; cursor: pointer; text-transform: uppercase; white-space: nowrap; height: fit-content; transition: all var(--transition-speed) ease; font-family: inherit; }
         .btn-toggle-list:hover { background: var(--border-glow); color: var(--bg-main); }
         
         .rot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 20px; }
         .rot-grid.collapsed { display: none !important; }
-        .rot-item { background: rgba(0, 0, 0, 0.2); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+        .rot-item { background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(255, 255, 255, 0.03); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
         .rot-header { display: flex; justify-content: space-between; align-items: center; }
         .rot-name { font-weight: 700; font-size: 14px; color: var(--text-main); }
         .rot-badge { font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 6px; text-transform: uppercase; }
 
-        .badge-noobini { background: rgba(166, 146, 133, 0.1); color: #a69285; border: 1px solid rgba(166, 146, 133, 0.2); }
-        .badge-rare { background: rgba(52, 152, 219, 0.1); color: #3498db; border: 1px solid rgba(52, 152, 219, 0.2); }
-        .badge-epic { background: rgba(155, 89, 182, 0.1); color: #9b59b6; border: 1px solid rgba(155, 89, 182, 0.2); }
-        .badge-legendary { background: rgba(241, 196, 15, 0.1); color: #f1c40f; border: 1px solid rgba(241, 196, 15, 0.2); }
-        .badge-mythic { background: rgba(230, 126, 34, 0.1); color: #e67e22; border: 1px solid rgba(230, 126, 34, 0.2); }
-        .badge-godly { background: rgba(231, 76, 60, 0.1); color: #e74c3c; border: 1px solid rgba(231, 76, 60, 0.2); }
-        .badge-secret { background: rgba(0, 255, 204, 0.1); color: #00ffcc; border: 1px solid rgba(0, 255, 204, 0.2); }
-        .badge-divine { background: rgba(255, 0, 255, 0.1); color: #ff00ff; border: 1px solid rgba(255, 0, 255, 0.2); }
-        .badge-hacked { background: rgba(118, 255, 3, 0.1); color: #76ff03; border: 1px solid rgba(118, 255, 3, 0.2); }
-        .badge-og { background: rgba(234, 32, 39, 0.1); color: #ea2027; border: 1px solid rgba(234, 32, 39, 0.2); }
-        .badge-celestial { background: rgba(0, 210, 211, 0.1); color: #00d2d1; border: 1px solid rgba(0, 210, 211, 0.2); }
-        .badge-eternal { background: rgba(253, 121, 168, 0.1); color: #fd79a8; border: 1px solid rgba(253, 121, 168, 0.2); }
+        .badge-noobini { background: rgba(166, 146, 133, 0.08); color: #a69285; border: 1px solid rgba(166, 146, 133, 0.15); }
+        .badge-rare { background: rgba(52, 152, 219, 0.08); color: #3498db; border: 1px solid rgba(52, 152, 219, 0.15); }
+        .badge-epic { background: rgba(155, 89, 182, 0.08); color: #9b59b6; border: 1px solid rgba(155, 89, 182, 0.15); }
+        .badge-legendary { background: rgba(241, 196, 15, 0.08); color: #f1c40f; border: 1px solid rgba(241, 196, 15, 0.15); }
+        .badge-mythic { background: rgba(230, 126, 34, 0.08); color: #e67e22; border: 1px solid rgba(230, 126, 34, 0.15); }
+        .badge-godly { background: rgba(231, 76, 60, 0.08); color: #e74c3c; border: 1px solid rgba(231, 76, 60, 0.15); }
+        .badge-secret { background: rgba(0, 255, 204, 0.08); color: #00ffcc; border: 1px solid rgba(0, 255, 204, 0.15); }
+        .badge-divine { background: rgba(255, 0, 255, 0.08); color: #ff00ff; border: 1px solid rgba(255, 0, 255, 0.15); }
+        .badge-hacked { background: rgba(118, 255, 3, 0.08); color: #76ff03; border: 1px solid rgba(118, 255, 3, 0.15); }
+        .badge-og { background: rgba(234, 32, 39, 0.08); color: #ea2027; border: 1px solid rgba(234, 32, 39, 0.15); }
+        .badge-celestial { background: rgba(0, 210, 211, 0.08); color: #00d2d1; border: 1px solid rgba(0, 210, 211, 0.15); }
+        .badge-eternal { background: rgba(253, 121, 168, 0.08); color: #fd79a8; border: 1px solid rgba(253, 121, 168, 0.15); }
 
         .rot-body-metrics { font-size: 12px; color: var(--text-muted); display: grid; grid-template-columns: 1fr; gap: 5px; background: rgba(0, 0, 0, 0.1); padding: 12px; border-radius: 8px; }
         .rot-body-metrics div span { font-family: monospace; color: var(--text-main); font-weight: 600; }
@@ -219,8 +276,21 @@
 <body>
 
     <div class="theme-sidebar">
+        <div class="sidebar-section">
+            <h2>Configs</h2>
+            <button class="btn-set-default" id="setDefaultBtn" onclick="saveDefaultTheme()">Use as Default</button>
+            <div class="settings-toggle-box">
+                <div class="toggle-row">
+                    <span>Theme Custom Fonts</span>
+                    <label class="switch">
+                        <input type="checkbox" id="fontToggle" checked onchange="toggleCustomFonts()">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+        
         <h2>Themes</h2>
-        <button class="btn-set-default" id="setDefaultBtn" onclick="saveDefaultTheme()">Use as Default</button>
         <button class="theme-btn active" onclick="setTheme('og')" id="theme-og"><span class="theme-dot" style="color:#ffaa00; background:#ffaa00;"></span> OG Cocoa</button>
         <button class="theme-btn" onclick="setTheme('void')" id="theme-void"><span class="theme-dot" style="color:#bf5fff; background:#bf5fff;"></span> Purple Void</button>
         <button class="theme-btn" onclick="setTheme('matrix')" id="theme-matrix"><span class="theme-dot" style="color:#00ff00; background:#00ff00;"></span> Matrix Hack</button>
@@ -231,9 +301,14 @@
         <button class="theme-btn" onclick="setTheme('toxic')" id="theme-toxic"><span class="theme-dot" style="color:#76ff03; background:#76ff03;"></span> Bio Sludge</button>
         <button class="theme-btn" onclick="setTheme('synthwave')" id="theme-synthwave"><span class="theme-dot" style="color:#ff5e97; background:#ff5e97;"></span> Outrun 1984</button>
         <button class="theme-btn" onclick="setTheme('deep')" id="theme-deep"><span class="theme-dot" style="color:#00ffff; background:#00ffff;"></span> Subnautica Deep</button>
-        <button class="theme-btn" onclick="setTheme('vampire')" id="theme-vampire"><span class="theme-dot" style="color:#9c0000; background:#9c0000;"></span> Vampire Castle</button>
+        <button class="theme-btn" onclick="setTheme('vampire')" id="theme-vampire"><span class="theme-dot" style="color:#da0000; background:#da0000;"></span> Vampire Castle</button>
         <button class="theme-btn" onclick="setTheme('retro')" id="theme-retro"><span class="theme-dot" style="color:#ff00f0; background:#ff00f0;"></span> Retrowave Dream</button>
         <button class="theme-btn" onclick="setTheme('orange')" id="theme-orange"><span class="theme-dot" style="color:#ff6f00; background:#ff6f00;"></span> Overwatch Orange</button>
+        <button class="theme-btn" onclick="setTheme('cyber2')" id="theme-cyber2"><span class="theme-dot" style="color:#00ffaa; background:#00ffaa;"></span> Cyber Cyberpunk</button>
+        <button class="theme-btn" onclick="setTheme('astro')" id="theme-astro"><span class="theme-dot" style="color:#38ef7d; background:#38ef7d;"></span> Astro Deep Space</button>
+        <button class="theme-btn" onclick="setTheme('nuclear')" id="theme-nuclear"><span class="theme-dot" style="color:#a8ff78; background:#a8ff78;"></span> Nuclear Slime</button>
+        <button class="theme-btn" onclick="setTheme('rosegold')" id="theme-rosegold"><span class="theme-dot" style="color:#b33939; background:#b33939;"></span> Rose Gold Quartz</button>
+        <button class="theme-btn" onclick="setTheme('ghost')" id="theme-ghost"><span class="theme-dot" style="color:#706fd3; background:#706fd3;"></span> Ghostly Haunt</button>
         <button class="theme-btn" onclick="setTheme('mono')" id="theme-mono"><span class="theme-dot" style="color:#ffffff; background:#ffffff;"></span> Minimal Slate</button>
     </div>
 
@@ -330,20 +405,26 @@
         const SUFFIXES = { 'K': 1e3, 'M': 1e6, 'B': 1e9, 'T': 1e12, 'Q': 1e15, 'QN': 1e18, 'S': 1e21, 'SP': 1e24, 'O': 1e27, 'N': 1e30, 'D': 1e33 };
 
         const THEMES = {
-            og: { main: '#0a0503', card: '#160d07', input: '#26160c', glow: '#ffaa00', accent: '#00ffcc', muted: '#a69285', shadow: '0 12px 40px rgba(0, 0, 0, 0.6)', border: '1px solid rgba(255, 170, 0, 0.04)' },
-            void: { main: '#04010a', card: '#0f051c', input: '#1c0b30', glow: '#bf5fff', accent: '#ff7bfb', muted: '#8c7d9e', shadow: '0 12px 40px rgba(191, 95, 255, 0.15)', border: '1px solid rgba(191, 95, 255, 0.08)' },
-            matrix: { main: '#000000', card: '#050805', input: '#0d140d', glow: '#00ff00', accent: '#55ff55', muted: '#668866', shadow: '0 0 25px rgba(0, 255, 0, 0.08)', border: '1px solid rgba(0, 255, 0, 0.2)' },
-            frost: { main: '#02070a', card: '#08141c', input: '#102430', glow: '#00bfff', accent: '#e0ffff', muted: '#7fa3b5', shadow: '0 12px 40px rgba(0, 191, 255, 0.12)', border: '1px solid rgba(0, 191, 255, 0.15)' },
-            crimson: { main: '#080002', card: '#170106', input: '#26030b', glow: '#ff003c', accent: '#ff809b', muted: '#b57f8a', shadow: '0 12px 40px rgba(255, 0, 60, 0.18)', border: '1px solid rgba(255, 0, 60, 0.12)' },
-            cyberpunk: { main: '#0b0914', card: '#141126', input: '#1e193a', glow: '#ff007f', accent: '#00f6ff', muted: '#777196', shadow: '0 15px 45px rgba(255, 0, 127, 0.2)', border: '1px solid rgba(255, 0, 127, 0.15)' },
-            luxury: { main: '#0d0d0d', card: '#1a1a1a', input: '#262626', glow: '#d4af37', accent: '#ffffff', muted: '#8c8c8c', shadow: '0 25px 55px rgba(0, 0, 0, 0.85)', border: '1px solid rgba(212, 175, 55, 0.25)' },
-            toxic: { main: '#0d0f0c', card: '#161a14', input: '#20261d', glow: '#76ff03', accent: '#eeff41', muted: '#7b8776', shadow: '0 12px 35px rgba(118, 255, 3, 0.12)', border: '1px solid rgba(118, 255, 3, 0.08)' },
-            synthwave: { main: '#1a0933', card: '#271247', input: '#3a1b69', glow: '#ff5e97', accent: '#fefe66', muted: '#a183ca', shadow: '0 12px 40px rgba(255, 94, 151, 0.18)', border: '1px solid rgba(254, 254, 102, 0.12)' },
-            deep: { main: '#01111a', card: '#032336', input: '#053552', glow: '#00ffff', accent: '#00ffaa', muted: '#417d9e', shadow: '0 12px 40px rgba(0, 255, 255, 0.15)', border: '1px solid rgba(0, 255, 255, 0.1)' },
-            vampire: { main: '#0f0202', card: '#210505', input: '#380a0a', glow: '#da0000', accent: '#ff5252', muted: '#9e6262', shadow: '0 12px 45px rgba(218, 0, 0, 0.2)', border: '1px solid rgba(218, 0, 0, 0.15)' },
-            retro: { main: '#12041c', card: '#240a36', input: '#3b1154', glow: '#ff00f0', accent: '#00ffff', muted: '#a170c4', shadow: '0 12px 40px rgba(255, 0, 240, 0.2)', border: '1px solid rgba(255, 0, 240, 0.12)' },
-            orange: { main: '#120e0a', card: '#241a12', input: '#382719', glow: '#ff6f00', accent: '#ffffff', muted: '#a88c74', shadow: '0 12px 40px rgba(255, 111, 0, 0.15)', border: '1px solid rgba(255, 111, 0, 0.12)' },
-            mono: { main: '#161719', card: '#212326', input: '#2b2e33', glow: '#ffffff', accent: '#99aab5', muted: '#72767d', shadow: '0 8px 24px rgba(0, 0, 0, 0.3)', border: '1px solid rgba(255, 255, 255, 0.06)' }
+            og: { main: '#0a0503', card: '#160d07', input: '#26160c', glow: '#ffaa00', accent: '#00ffcc', muted: '#a69285', shadow: '0 12px 40px rgba(0, 0, 0, 0.6)', border: '1px solid rgba(255, 170, 0, 0.04)', font: 'system-ui' },
+            void: { main: '#04010a', card: '#0f051c', input: '#1c0b30', glow: '#bf5fff', accent: '#ff7bfb', muted: '#8c7d9e', shadow: '0 12px 40px rgba(191, 95, 255, 0.15)', border: '1px solid rgba(191, 95, 255, 0.08)', font: 'Segoe UI' },
+            matrix: { main: '#000000', card: '#050805', input: '#0d140d', glow: '#00ff00', accent: '#55ff55', muted: '#668866', shadow: '0 0 25px rgba(0, 255, 0, 0.08)', border: '1px solid rgba(0, 255, 0, 0.2)', font: 'Courier New' },
+            frost: { main: '#02070a', card: '#08141c', input: '#102430', glow: '#00bfff', accent: '#e0ffff', muted: '#7fa3b5', shadow: '0 12px 40px rgba(0, 191, 255, 0.12)', border: '1px solid rgba(0, 191, 255, 0.15)', font: 'Segoe UI' },
+            crimson: { main: '#080002', card: '#170106', input: '#26030b', glow: '#ff003c', accent: '#ff809b', muted: '#b57f8a', shadow: '0 12px 40px rgba(255, 0, 60, 0.18)', border: '1px solid rgba(255, 0, 60, 0.12)', font: 'Arial' },
+            cyberpunk: { main: '#0b0914', card: '#141126', input: '#1e193a', glow: '#ff007f', accent: '#00f6ff', muted: '#777196', shadow: '0 15px 45px rgba(255, 0, 127, 0.2)', border: '1px solid rgba(255, 0, 127, 0.15)', font: 'Trebuchet MS' },
+            luxury: { main: '#0d0d0d', card: '#1a1a1a', input: '#262626', glow: '#d4af37', accent: '#ffffff', muted: '#8c8c8c', shadow: '0 25px 55px rgba(0, 0, 0, 0.85)', border: '1px solid rgba(212, 175, 55, 0.25)', font: 'Georgia' },
+            toxic: { main: '#0d0f0c', card: '#161a14', input: '#20261d', glow: '#76ff03', accent: '#eeff41', muted: '#7b8776', shadow: '0 12px 35px rgba(118, 255, 3, 0.12)', border: '1px solid rgba(118, 255, 3, 0.08)', font: 'Lucida Sans' },
+            synthwave: { main: '#1a0933', card: '#271247', input: '#3a1b69', glow: '#ff5e97', accent: '#fefe66', muted: '#a183ca', shadow: '0 12px 40px rgba(255, 94, 151, 0.18)', border: '1px solid rgba(254, 254, 102, 0.12)', font: 'Trebuchet MS' },
+            deep: { main: '#01111a', card: '#032336', input: '#053552', glow: '#00ffff', accent: '#00ffaa', muted: '#417d9e', shadow: '0 12px 40px rgba(0, 255, 255, 0.15)', border: '1px solid rgba(0, 255, 255, 0.1)', font: 'Segoe UI' },
+            vampire: { main: '#0f0202', card: '#210505', input: '#380a0a', glow: '#da0000', accent: '#ff5252', muted: '#9e6262', shadow: '0 12px 45px rgba(218, 0, 0, 0.2)', border: '1px solid rgba(218, 0, 0, 0.15)', font: 'Times New Roman' },
+            retro: { main: '#12041c', card: '#240a36', input: '#3b1154', glow: '#ff00f0', accent: '#00ffff', muted: '#a170c4', shadow: '0 12px 40px rgba(255, 0, 240, 0.2)', border: '1px solid rgba(255, 0, 240, 0.12)', font: 'Impact' },
+            orange: { main: '#120e0a', card: '#241a12', input: '#382719', glow: '#ff6f00', accent: '#ffffff', muted: '#a88c74', shadow: '0 12px 40px rgba(255, 111, 0, 0.15)', border: '1px solid rgba(255, 111, 0, 0.12)', font: 'Impact' },
+            // NEW VARIANT PRESETS ADDED BELOW
+            cyber2: { main: '#050c12', card: '#0c1924', input: '#142738', glow: '#00ffaa', accent: '#00e1ff', muted: '#7093a8', shadow: '0 12px 40px rgba(0, 255, 170, 0.15)', border: '1px solid rgba(0, 255, 170, 0.1)', font: 'Segoe UI' },
+            astro: { main: '#0a0a14', card: '#121226', input: '#1d1d3d', glow: '#38ef7d', accent: '#11998e', muted: '#8383a3', shadow: '0 12px 40px rgba(56, 239, 125, 0.15)', border: '1px solid rgba(56, 239, 125, 0.1)', font: 'Arial' },
+            nuclear: { main: '#0b1205', card: '#16240c', input: '#243b15', glow: '#a8ff78', accent: '#78ffd6', muted: '#879e78', shadow: '0 12px 40px rgba(168, 255, 120, 0.15)', border: '1px solid rgba(168, 255, 120, 0.1)', font: 'Lucida Sans' },
+            rosegold: { main: '#1c1214', card: '#332226', input: '#4a3338', glow: '#b33939', accent: '#ffb8b8', muted: '#a88e93', shadow: '0 12px 40px rgba(179, 57, 57, 0.15)', border: '1px solid rgba(179, 57, 57, 0.1)', font: 'Georgia' },
+            ghost: { main: '#13121c', card: '#232136', input: '#32304d', glow: '#706fd3', accent: '#474787', muted: '#9290a8', shadow: '0 12px 40px rgba(112, 111, 211, 0.15)', border: '1px solid rgba(112, 111, 211, 0.1)', font: 'Trebuchet MS' },
+            mono: { main: '#161719', card: '#212326', input: '#2b2e33', glow: '#ffffff', accent: '#99aab5', muted: '#72767d', shadow: '0 8px 24px rgba(0, 0, 0, 0.3)', border: '1px solid rgba(255, 255, 255, 0.06)', font: 'system-ui' }
         };
 
         const MUTATIONS_DATA = [
@@ -385,10 +466,11 @@
         let savedBuilds = [];
         let currentlySelectedTheme = 'og';
 
-        const SAVE_KEY_INCOME   = 'brainrot_v6_income';
-        const SAVE_KEY_REBIRTH  = 'brainrot_v6_rebirth';
-        const SAVE_KEY_BUILDS   = 'brainrot_v6_builds';
-        const SAVE_KEY_THEME    = 'brainrot_v6_theme';
+        const SAVE_KEY_INCOME   = 'brainrot_v7_income';
+        const SAVE_KEY_REBIRTH  = 'brainrot_v7_rebirth';
+        const SAVE_KEY_BUILDS   = 'brainrot_v7_builds';
+        const SAVE_KEY_THEME    = 'brainrot_v7_theme';
+        const SAVE_KEY_FONTS    = 'brainrot_v7_fonts';
 
         window.onload = function() {
             let savedIncome = localStorage.getItem(SAVE_KEY_INCOME);
@@ -398,6 +480,12 @@
             
             let storedBuilds = localStorage.getItem(SAVE_KEY_BUILDS);
             if (storedBuilds) { savedBuilds = JSON.parse(storedBuilds); renderSavedBuilds(); }
+            
+            let savedFontToggle = localStorage.getItem(SAVE_KEY_FONTS);
+            if (savedFontToggle !== null) {
+                document.getElementById('fontToggle').checked = (savedFontToggle === 'true');
+            }
+
             let savedTheme = localStorage.getItem(SAVE_KEY_THEME);
             if (savedTheme && THEMES[savedTheme]) setTheme(savedTheme); else setTheme('og');
 
@@ -417,7 +505,6 @@
                     <span class="mutation-name">${item.name}</span>
                     <span class="mutation-value">${item.val}x</span>
                 `;
-                // FIXED: Instantaneous native DOM manipulation replaces heavy performance layout flushing innerHTML loops
                 div.addEventListener('click', () => toggleMutation(item.id));
                 grid.appendChild(div);
             });
@@ -648,6 +735,7 @@
             currentlySelectedTheme = themeKey;
             const theme = THEMES[themeKey];
             const root = document.documentElement;
+            
             root.style.setProperty('--bg-main', theme.main);
             root.style.setProperty('--bg-card', theme.card);
             root.style.setProperty('--bg-input', theme.input);
@@ -657,9 +745,25 @@
             root.style.setProperty('--card-shadow', theme.shadow);
             root.style.setProperty('--card-border', theme.border);
 
+            // Trigger dynamic font stack configuration evaluation
+            toggleCustomFonts();
+
             document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
             const activeBtn = document.getElementById(`theme-${themeKey}`);
             if (activeBtn) activeBtn.classList.add('active');
+        }
+
+        function toggleCustomFonts() {
+            const fontToggle = document.getElementById('fontToggle').checked;
+            const root = document.documentElement;
+            
+            localStorage.setItem(SAVE_KEY_FONTS, fontToggle);
+
+            if (fontToggle && THEMES[currentlySelectedTheme]) {
+                root.style.setProperty('--theme-font', THEMES[currentlySelectedTheme].font);
+            } else {
+                root.style.setProperty('--theme-font', "'Segoe UI', system-ui, -apple-system, sans-serif");
+            }
         }
 
         function saveDefaultTheme() {
