@@ -274,28 +274,6 @@
         .list-header-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; gap: 20px; flex-wrap: wrap; width: 100%; border-bottom: 1px solid rgba(255, 255, 255, 0.05); padding-bottom: 12px;}
         .list-header-title-area { display: flex; align-items: center; gap: 15px; flex-grow: 1; }
         .list-header-title-area h2 { border-bottom: none; margin-bottom: 0; padding-bottom: 0; width: auto; }
-        
-        /* Combined Dynamic Cost Summary Area */
-        .grid-total-summary {
-            background: rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 10px 16px;
-            border-radius: 12px;
-            text-align: right;
-            min-width: 140px;
-        }
-        .grid-total-cost {
-            font-size: 15px;
-            font-weight: 700;
-            color: var(--text-main);
-            font-family: monospace;
-        }
-        .grid-total-time {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text-muted);
-            margin-top: 2px;
-        }
 
         .search-controls-wrapper { display: flex; gap: 15px; flex-grow: 1; justify-content: flex-end; max-width: 600px; width: 100%; }
         .search-input { padding: 10px 14px; font-size: 14px; border-radius: 10px; flex-grow: 2; }
@@ -307,9 +285,24 @@
         .rot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 20px; }
         .rot-grid.collapsed { display: none !important; }
         .rot-item { background: rgba(0, 0, 0, 0.15); border: 1px solid rgba(255, 255, 255, 0.03); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
-        .rot-header { display: flex; justify-content: space-between; align-items: center; }
+        
+        /* Updated Header layout for Rarity and Cost display metrics */
+        .rot-header { display: flex; justify-content: space-between; align-items: flex-start; }
         .rot-name { font-weight: 700; font-size: 14px; color: var(--text-main); }
+        
+        .rot-meta-block { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
         .rot-badge { font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 6px; text-transform: uppercase; }
+
+        /* Requested styling block for live calculations with no textual labels */
+        .rot-cost-calc-box {
+            text-align: right;
+            font-family: monospace;
+            font-size: 13px;
+            font-weight: 700;
+            line-height: 1.3;
+        }
+        .rot-cost-amt { color: var(--text-main); }
+        .rot-cost-time { color: var(--border-glow); font-size: 11px; font-weight: 600; }
 
         .badge-noobini { background: rgba(166, 146, 133, 0.08); color: #a69285; border: 1px solid rgba(166, 146, 133, 0.15); }
         .badge-rare { background: rgba(52, 152, 219, 0.08); color: #3498db; border: 1px solid rgba(52, 152, 219, 0.15); }
@@ -438,11 +431,6 @@
                         <h2>Brainrot Upgrades Management Grid</h2>
                         <button class="btn-toggle-list" id="toggleListBtn" onclick="toggleBrainrotGrid()">Hide List</button>
                     </div>
-                    
-                    <div class="grid-total-summary">
-                        <div class="grid-total-cost" id="gridTotalCostDisplay">-</div>
-                        <div class="grid-total-time" id="gridTotalTimeDisplay">-</div>
-                    </div>
 
                     <div class="search-controls-wrapper" id="searchControls">
                         <input type="text" id="searchBar" class="search-input" placeholder="Search upgrade name or rarity..." oninput="debounceRenderGrid()">
@@ -559,11 +547,9 @@
             renderMutationsList();
             renderBrainrotList();
 
-            // Run live Saturday 7:00 PM CET/CEST engine updates
             initSaturdayCountdown();
         };
 
-        /* Automatically accounts for Daylight Savings changes (CET vs CEST) */
         function initSaturdayCountdown() {
             function updateClock() {
                 const now = new Date();
@@ -673,7 +659,6 @@
             }
         }
 
-        // Optimization: Debounce typing inside large grid triggers so typing remains butter-smooth
         function debounceRenderGrid() {
             clearTimeout(gridDebounceTimeout);
             gridDebounceTimeout = setTimeout(() => {
@@ -681,7 +666,6 @@
             }, 250);
         }
 
-        // Optimization: Config level boxes live-save and trigger math but delay deep grid loads
         function globalInputsUpdated() {
             liveSaveFields();
             if (document.getElementById('results').style.display === 'block') {
@@ -690,7 +674,6 @@
             debounceRenderGrid();
         }
 
-        // Optimization: Override fields only update manual calculator results instantly (No heavy grid lag)
         function overrideInputsUpdated() {
             if (document.getElementById('results').style.display === 'block') {
                 calculateOverride();
@@ -713,9 +696,6 @@
 
             let recordsFound = 0;
             let htmlBuffer = '';
-            
-            // Track total cumulative base cost values for all filtered/visible cards
-            let overallFilteredCostAccumulator = 0;
 
             BRAINROT_UPGRADES.forEach(upg => {
                 if (filter !== 'all' && upg.rarity !== filter) return;
@@ -728,26 +708,45 @@
 
                 recordsFound++;
 
-                // Factor in active mutation directly to the card stats
                 let rawBaseLvl1 = upg.baseInc * mutationMult;
                 let rawRebirthLvl1 = rawBaseLvl1 * rebirthMulti;
                 let rawBaseMax = rawBaseLvl1 * Math.pow(1.25, scaleSteps);
                 let rawRebirthMax = rawBaseMax * rebirthMulti;
 
-                // Calculate cumulative upgrade cost scaling from level 1 to your targeted level setting
+                // Mutation applied to the base card scaling cost
                 let individualUpgradeCostSum = 0;
-                let activeBaseCostStep = upg.baseInc; // Base card cost tracks with baseline performance
+                let activeBaseCostStep = upg.baseInc * mutationMult; 
                 for (let levelStep = 0; levelStep < scaleSteps; levelStep++) {
                     individualUpgradeCostSum += activeBaseCostStep;
                     activeBaseCostStep *= 1.5;
                 }
-                overallFilteredCostAccumulator += individualUpgradeCostSum;
+
+                // Individual time calculations
+                let cardTimeString = "-";
+                if (rawDailyIncome > 0) {
+                    let totalHoursNeeded = individualUpgradeCostSum / (rawDailyIncome / 24.0);
+                    if (totalHoursNeeded < 0.01) {
+                        cardTimeString = "Instant";
+                    } else if (totalHoursNeeded < 1) {
+                        cardTimeString = (totalHoursNeeded * 60).toFixed(1) + " mins";
+                    } else if (totalHoursNeeded > 24) {
+                        cardTimeString = (totalHoursNeeded / 24).toFixed(1) + " days";
+                    } else {
+                        cardTimeString = totalHoursNeeded.toFixed(1) + " hours";
+                    }
+                }
 
                 htmlBuffer += `
                     <div class="rot-item">
                         <div class="rot-header">
                             <span class="rot-name">${upg.name}</span>
-                            <span class="rot-badge badge-${upg.rarity}">${upg.rarity}</span>
+                            <div class="rot-meta-block">
+                                <span class="rot-badge badge-${upg.rarity}">${upg.rarity}</span>
+                                <div class="rot-cost-calc-box">
+                                    <div class="rot-cost-amt">${formatOutput(individualUpgradeCostSum)}</div>
+                                    <div class="rot-cost-time">${cardTimeString}</div>
+                                </div>
+                            </div>
                         </div>
                         <div class="rot-body-metrics">
                             <div>Base Level 1: <span>${formatOutput(rawBaseLvl1)}/s</span></div>
@@ -758,32 +757,6 @@
                     </div>
                 `;
             });
-
-            // Display global cost calculations inside header block
-            const totalCostDisplayEl = document.getElementById('gridTotalCostDisplay');
-            const totalTimeDisplayEl = document.getElementById('gridTotalTimeDisplay');
-
-            if (recordsFound > 0) {
-                totalCostDisplayEl.innerText = formatOutput(overallFilteredCostAccumulator);
-                
-                if (rawDailyIncome > 0) {
-                    let totalHoursNeeded = overallFilteredCostAccumulator / (rawDailyIncome / 24.0);
-                    if (totalHoursNeeded < 0.01) {
-                        totalTimeDisplayEl.innerText = "Instant";
-                    } else if (totalHoursNeeded < 1) {
-                        totalTimeDisplayEl.innerText = (totalHoursNeeded * 60).toFixed(1) + " mins";
-                    } else if (totalHoursNeeded > 24) {
-                        totalTimeDisplayEl.innerText = (totalHoursNeeded / 24).toFixed(1) + " days";
-                    } else {
-                        totalTimeDisplayEl.innerText = totalHoursNeeded.toFixed(1) + " hours";
-                    }
-                } else {
-                    totalTimeDisplayEl.innerText = "N/A (Missing Daily Income Pool)";
-                }
-            } else {
-                totalCostDisplayEl.innerText = "-";
-                totalTimeDisplayEl.innerText = "-";
-            }
 
             if (recordsFound === 0) {
                 grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px; opacity: 0.6;">No brainrots match your criteria.</div>`;
