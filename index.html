@@ -380,11 +380,11 @@
                 <div class="grid-2">
                     <div class="input-group">
                         <label>Override Income/s</label>
-                        <input type="text" id="curInc" value="" placeholder="e.g. 420.3K" oninput="globalInputsUpdated()">
+                        <input type="text" id="curInc" value="" placeholder="e.g. 420.3K" oninput="overrideInputsUpdated()">
                     </div>
                     <div class="input-group">
                         <label>Override Base Cost</label>
-                        <input type="text" id="curCost" value="" placeholder="e.g. 15" oninput="globalInputsUpdated()">
+                        <input type="text" id="curCost" value="" placeholder="e.g. 15" oninput="overrideInputsUpdated()">
                     </div>
                 </div>
                 <div class="btn-flex">
@@ -416,7 +416,7 @@
                         <button class="btn-toggle-list" id="toggleListBtn" onclick="toggleBrainrotGrid()">Hide List</button>
                     </div>
                     <div class="search-controls-wrapper" id="searchControls">
-                        <input type="text" id="searchBar" class="search-input" placeholder="Search upgrade name or rarity..." oninput="renderBrainrotList()">
+                        <input type="text" id="searchBar" class="search-input" placeholder="Search upgrade name or rarity..." oninput="debounceRenderGrid()">
                         <select id="rarityFilter" class="filter-select" onchange="renderBrainrotList()">
                             <option value="all">All Rarities</option>
                             <option value="noobini">Noobini</option>
@@ -502,6 +502,7 @@
         let selectedMutationId = null;
         let savedBuilds = [];
         let currentlySelectedTheme = 'og';
+        let gridDebounceTimeout = null;
 
         const SAVE_KEY_INCOME   = 'brainrot_v7_income';
         const SAVE_KEY_REBIRTH  = 'brainrot_v7_rebirth';
@@ -537,18 +538,13 @@
         function initSaturdayCountdown() {
             function updateClock() {
                 const now = new Date();
-                
-                // Track standard timezone offset for Central Europe dynamically 
-                // Checks whether a standard target date in Europe falls into DST bounds
                 const targetTimeZone = 'Europe/Warsaw'; 
                 
-                // Establish upcoming target mapping parameters
                 let nextUpdate = new Date(now);
-                nextUpdate.setHours(19, 0, 0, 0); // 7:00 PM Local Time
+                nextUpdate.setHours(19, 0, 0, 0); 
                 
                 let daysToSaturday = (6 - now.getDay() + 7) % 7;
                 
-                // If it is Saturday but past 7 PM, push target index forward to next week
                 if (daysToSaturday === 0) {
                     const currentTargetCheck = new Date(now.toLocaleString('en-US', { timeZone: targetTimeZone }));
                     if (currentTargetCheck.getHours() >= 19) {
@@ -558,12 +554,10 @@
                 
                 nextUpdate.setDate(now.getDate() + daysToSaturday);
 
-                // Re-align explicitly to match Target Timezone offsets precisely
                 const localizedTargetStr = nextUpdate.toLocaleString('en-US', { timeZone: targetTimeZone });
                 const localizedTargetObj = new Date(localizedTargetStr);
                 const localDiff = nextUpdate.getTime() - localizedTargetObj.getTime();
                 
-                // Final calculation anchor points
                 const definitiveTarget = new Date(nextUpdate.getTime() + localDiff);
                 const timeRemainingMs = definitiveTarget - now;
                 const threeDaysInMs = 3 * 24 * 60 * 60 * 1000;
@@ -650,9 +644,25 @@
             }
         }
 
+        // Optimization: Debounce typing inside large grid triggers so typing remains butter-smooth
+        function debounceRenderGrid() {
+            clearTimeout(gridDebounceTimeout);
+            gridDebounceTimeout = setTimeout(() => {
+                renderBrainrotList();
+            }, 250);
+        }
+
+        // Optimization: Config level boxes live-save and trigger math but delay deep grid loads
         function globalInputsUpdated() {
             liveSaveFields();
-            renderBrainrotList();
+            if (document.getElementById('results').style.display === 'block') {
+                calculateOverride();
+            }
+            debounceRenderGrid();
+        }
+
+        // Optimization: Override fields only update manual calculator results instantly (No heavy grid lag)
+        function overrideInputsUpdated() {
             if (document.getElementById('results').style.display === 'block') {
                 calculateOverride();
             }
@@ -662,8 +672,7 @@
             const grid = document.getElementById('rotGrid');
             const filter = document.getElementById('rarityFilter').value;
             const query = document.getElementById('searchBar').value.toLowerCase().trim();
-            grid.innerHTML = '';
-
+            
             let mutationMult = getActiveMutationMultiplier();
             let rebirthMulti = parseFloat(document.getElementById('rebirthMulti').value) || 1;
             let targetLvl = parseInt(document.getElementById('tarLvl').value) || 75;
@@ -673,6 +682,7 @@
             let scaleSteps = targetLvl - 1;
 
             let recordsFound = 0;
+            let htmlBuffer = '';
 
             BRAINROT_UPGRADES.forEach(upg => {
                 if (filter !== 'all' && upg.rarity !== filter) return;
@@ -690,7 +700,7 @@
                 let rawBaseMax = rawBaseLvl1 * Math.pow(1.25, scaleSteps);
                 let rawRebirthMax = rawBaseMax * rebirthMulti;
 
-                grid.innerHTML += `
+                htmlBuffer += `
                     <div class="rot-item">
                         <div class="rot-header">
                             <span class="rot-name">${upg.name}</span>
@@ -708,6 +718,8 @@
 
             if (recordsFound === 0) {
                 grid.innerHTML = `<div style="grid-column: 1/-1; text-align: center; color: var(--text-muted); padding: 30px; opacity: 0.6;">No brainrots match your criteria.</div>`;
+            } else {
+                grid.innerHTML = htmlBuffer;
             }
         }
 
