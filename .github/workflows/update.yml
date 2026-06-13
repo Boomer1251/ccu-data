@@ -1,43 +1,67 @@
-name: Update CCU Data
+import requests
+import json
+import os
+from datetime import datetime
 
-on:
-  schedule:
-    - cron: '0 * * * *' # Executes every single hour on the dot
-  workflow_dispatch: # Allows manual testing triggers straight from GitHub Actions panel
+# YOUR UNIVERSE ID
+UNIVERSE_ID = "18687417158" 
+DATA_FILE = "ccu_data.json"
+CURRENT_TXT_FILE = "current_ccu.txt"  # Simple text file holding just the number
+CURRENT_JSON_FILE = "current_ccu.json" # Clean mini-JSON holding current metrics
 
-jobs:
-  update-data:
-    runs-on: ubuntu-latest
+def get_ccu():
+    url = f"https://games.roproxy.com/v1/games?universeIds={UNIVERSE_ID}"
+    try:
+        response = requests.get(url, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            if 'data' in data and len(data['data']) > 0:
+                return data['data'][0]['playing']
+    except Exception as e:
+        print(f"Error fetching telemetry from RoProxy: {e}")
+    return None
+
+# Load historical ledger data safely
+if os.path.exists(DATA_FILE) and os.path.getsize(DATA_FILE) > 0:
+    try:
+        with open(DATA_FILE, 'r') as f:
+            data = json.load(f)
+    except json.JSONDecodeError:
+        print("Warning: Corrupted JSON detected. Resetting array.")
+        data = []
+else:
+    data = []
+
+if not isinstance(data, list):
+    data = []
+
+new_ccu = get_ccu()
+
+if new_ccu is not None:
+    print(f"Fetched live CCU stream target: {new_ccu}")
     
-    # Grants precise write access to repo contents for programmatic pushing
-    permissions:
-      contents: write
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    
+    # 1. Update the full history ledger array
+    new_entry = {"t": timestamp, "v": new_ccu}
+    data.append(new_entry)
+    data = data[-100:] # Keep the last 100 metrics rows
+    
+    with open(DATA_FILE, 'w') as f:
+        json.dump(data, f, indent=4)
+        
+    # 2. ALSO save a ultra-clean raw text file with just the number string
+    with open(CURRENT_TXT_FILE, 'w') as f:
+        f.write(str(new_ccu))
+        
+    # 3. ALSO save a dedicated mini-JSON reflecting just the newest metric state
+    current_state = {
+        "current_ccu": new_ccu,
+        "last_updated": timestamp
+    }
+    with open(CURRENT_JSON_FILE, 'w') as f:
+        json.dump(current_state, f, indent=4)
 
-    steps:
-      - name: Checkout Repository Code
-        uses: actions/checkout@v4
-
-      - name: Initialize Runtime Environment (Python 3.11)
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Provision Network Handlers
-        run: pip install requests
-
-      - name: Run Telemetry Engine Pipeline
-        run: python update_ccu.py
-
-      - name: Synchronize and Commit Changes Safely
-        run: |
-          git config --global user.name "GitHub Action Bot"
-          git config --global user.email "actions@github.com"
-          
-          # Only perform deployment execution steps if JSON file was modified
-          if ! git diff --quiet ccu_data.json; then
-            git add ccu_data.json
-            git commit -m "Auto-update CCU data [skip ci]"
-            git push origin HEAD
-          else
-            print "No deviation found in CCU stream tracker metrics. Skipping commit sequence."
-          fi
+    print("Successfully committed logs locally to all data registries.")
+else:
+    print("Skipping entry update: API target did not respond gracefully.")
