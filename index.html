@@ -23,7 +23,7 @@
             </span>
             <div>
                 <h1 class="text-md font-black tracking-wider text-slate-100 uppercase">CCU ANALYTICS</h1>
-                <p class="text-[9px] text-slate-500 font-mono tracking-tight">LIVE METRICS ENGINE</p>
+                <p class="text-[9px] text-slate-500 font-mono tracking-tight">ROLIMONS SCRAPER METRICS ENGINE</p>
             </div>
         </div>
         
@@ -64,7 +64,7 @@
                 ACTIVE MONITOR SOCKET OPEN
             </div>
             <h2 class="text-xs font-bold tracking-widest uppercase text-teal-400 font-mono mb-1">LIVE STATUS MONITOR</h2>
-            <p class="text-[10px] text-slate-400 font-mono mb-6">Real-time simulation window stream showing rolling telemetry network loads.</p>
+            <p class="text-[10px] text-slate-400 font-mono mb-6">Real-time interface connected directly to automated backend scanning streams.</p>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div class="bg-slate-950/60 border border-slate-800 rounded-lg p-4 flex flex-col justify-center items-center text-center">
@@ -199,7 +199,9 @@
         let rollingLivePoints = [];
         let sessionHighestPeak = 0;
 
-        const DATA_URL = "ccu_data.json";
+        // Flask API mapping configurations
+        const DATA_URL = "http://127.0.0.1:5000/ccu_data.json";
+        const LIVE_API_URL = "http://127.0.0.1:5000/api/ccu/live";
 
         function toggleCustomDropdown(dropdownId) {
             const dropdown = document.getElementById(dropdownId);
@@ -220,13 +222,13 @@
                 if (!response.ok) throw new Error(`Network problem status: ${response.status}`);
                 
                 const rawPayload = await response.json();
-                rawCCUData = rawPayload.filter(row => row && row.v > 0 && row.t);
+                rawCCUData = rawPayload.filter(row => row && row.v >= 0 && row.t);
                 
                 buildCustomTimeframeLists();
                 processDataPipeline();
                 
             } catch (error) {
-                console.error("Failure pulling CCU ledger from GitHub:", error);
+                console.error("Failure pulling CCU ledger from API application instance:", error);
                 document.getElementById('table-body').innerHTML = `
                     <tr>
                         <td colspan="3" class="p-8 text-center text-rose-400 font-mono text-xs">
@@ -257,7 +259,6 @@
             let primaryHtml = `<button onclick="selectTimeframeOption('primary', 'all', 'Target: ALL TIME')" class="w-full text-left px-4 py-2 text-slate-300 hover:bg-slate-900 hover:text-teal-400 transition text-xs font-bold">ALL TIME</button>`;
             let compareHtml = '';
 
-            // 1. ADD FULL YEAR ENTRIES TO ARRAYS
             primaryHtml += `<div class="px-4 py-1 text-[9px] text-slate-500 font-mono tracking-wider border-t border-slate-900 mt-1 uppercase font-bold">Years</div>`;
             compareHtml += `<div class="px-4 py-1 text-[9px] text-slate-500 font-mono tracking-wider uppercase font-bold">Years</div>`;
             
@@ -266,7 +267,6 @@
                 compareHtml += `<button onclick="selectTimeframeOption('compare', 'Y-${yr}', 'VS: Full ${yr}')" class="w-full text-left px-4 py-2 text-slate-300 hover:bg-slate-900 hover:text-teal-400 transition text-xs font-semibold">${yr} (Full Year)</button>`;
             });
 
-            // 2. ADD INDIVIDUAL MONTHLY ENTRIES TO ARRAYS
             primaryHtml += `<div class="px-4 py-1 text-[9px] text-slate-500 font-mono tracking-wider border-t border-slate-900 mt-1 uppercase font-bold">Months</div>`;
             compareHtml += `<div class="px-4 py-1 text-[9px] text-slate-500 font-mono tracking-wider border-t border-slate-900 mt-1 uppercase font-bold">Months</div>`;
 
@@ -327,13 +327,11 @@
             const tableSection = document.getElementById('ledger-table-section');
             const liveMonitorSection = document.getElementById('live-monitor-section');
 
-            // Deconstruct alternative active intervals if switching paths
             if (liveTimerInterval) {
                 clearInterval(liveTimerInterval);
                 liveTimerInterval = null;
             }
 
-            // Normal state presentation toggles
             btnSingle.className = "px-3 py-1 rounded text-slate-400 hover:text-slate-200 cursor-pointer transition duration-150";
             btnCompare.className = "px-3 py-1 rounded text-slate-400 hover:text-slate-200 cursor-pointer transition duration-150";
             btnLive.className = "px-3 py-1 rounded text-slate-400 hover:text-slate-200 cursor-pointer transition duration-150";
@@ -430,67 +428,74 @@
             }
         }
 
-        // Live Realtime Dynamic Generator Execution Logic
-        function initializeLiveMonitoringSystem() {
-            if(rawCCUData.length === 0) return;
+        // Live Realtime Dynamic Synchronizer Pipeline
+        async function initializeLiveMonitoringSystem() {
+            if(rawCCUData.length === 0) {
+                rollingLivePoints = [{t: new Date().toLocaleTimeString(), v: 0}];
+            } else {
+                const seedingBase = rawCCUData.slice(-15);
+                rollingLivePoints = seedingBase.map(item => ({
+                    t: item.t,
+                    v: item.v
+                }));
+            }
 
-            // Seed initial 15 points using tail elements of loaded configuration metrics
-            const seedingBase = rawCCUData.slice(-15);
-            rollingLivePoints = seedingBase.map(item => ({
-                t: item.t,
-                v: item.v
-            }));
-
-            // Track state peaks across running active scope
-            sessionHighestPeak = Math.max(...rollingLivePoints.map(p => p.v));
-            updateLiveKPIVisualizations(0);
-
+            sessionHighestPeak = Math.max(...rollingLivePoints.map(p => p.v), 0);
+            updateLiveKPIVisualizations(0, rollingLivePoints[rollingLivePoints.length - 1]?.v || 0);
             renderLiveChartStructure();
 
-            // Fire interval worker process pipeline cascading updates every 2 seconds
-            liveTimerInterval = setInterval(() => {
-                const dynamicOffset = Math.floor((Math.random() - 0.5) * 8000);
-                const baselineValue = rawCCUData[Math.floor(Math.random() * rawCCUData.length)]?.v || 80000;
-                const newlyCalculatedCCU = Math.max(2000, baselineValue + dynamicOffset);
+            // Interrogates the active local server instance metrics route
+            liveTimerInterval = setInterval(async () => {
+                try {
+                    const response = await fetch(LIVE_API_URL);
+                    if (!response.ok) return;
+                    const liveStreamFrame = await response.json();
+                    
+                    const newlyCalculatedCCU = liveStreamFrame.v;
+                    const currentTimeStamp = liveStreamFrame.t;
 
-                if (newlyCalculatedCCU > sessionHighestPeak) {
-                    sessionHighestPeak = newlyCalculatedCCU;
+                    let previousVal = rollingLivePoints.length > 0 ? rollingLivePoints[rollingLivePoints.length - 1].v : newlyCalculatedCCU;
+                    let dynamicOffset = newlyCalculatedCCU - previousVal;
+
+                    if (newlyCalculatedCCU > sessionHighestPeak) {
+                        sessionHighestPeak = newlyCalculatedCCU;
+                    }
+                    
+                    rollingLivePoints.push({ t: currentTimeStamp, v: newlyCalculatedCCU });
+                    if (rollingLivePoints.length > 20) {
+                        rollingLivePoints.shift();
+                    }
+
+                    updateLiveKPIVisualizations(dynamicOffset, newlyCalculatedCCU);
+                    appendLiveChartMetricPoint(currentTimeStamp, newlyCalculatedCCU);
+                } catch (err) {
+                    console.error("Telemetry interface pipeline lost connection to local API service:", err);
                 }
-
-                const currentTimeStamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
-                
-                rollingLivePoints.push({ t: currentTimeStamp, v: newlyCalculatedCCU });
-                if (rollingLivePoints.length > 20) {
-                    rollingLivePoints.shift();
-                }
-
-                updateLiveKPIVisualizations(dynamicOffset);
-                appendLiveChartMetricPoint(currentTimeStamp, newlyCalculatedCCU);
-            }, 2000);
+            }, 5000); 
         }
 
-        function updateLiveKPIVisualizations(delta) {
-            if(rollingLivePoints.length === 0) return;
-            const absoluteCurrent = rollingLivePoints[rollingLivePoints.length - 1].v;
-
+        function updateLiveKPIVisualizations(delta, absoluteCurrent) {
             document.getElementById('live-current-val').innerText = absoluteCurrent.toLocaleString();
             document.getElementById('live-session-peak').innerText = sessionHighestPeak.toLocaleString();
 
             const deltaBadge = document.getElementById('live-current-delta');
-            if (delta >= 0) {
-                deltaBadge.innerText = `▲ +${delta.toLocaleString()} variance offset`;
+            if (delta > 0) {
+                deltaBadge.innerText = `▲ +${delta.toLocaleString()} variance step`;
                 deltaBadge.className = "text-[10px] font-mono text-emerald-400 mt-2";
-            } else {
-                deltaBadge.innerText = `▼ ${delta.toLocaleString()} variance offset`;
+            } else if (delta < 0) {
+                deltaBadge.innerText = `▼ ${delta.toLocaleString()} variance step`;
                 deltaBadge.className = "text-[10px] font-mono text-rose-400 mt-2";
+            } else {
+                deltaBadge.innerText = `◼ Static timeline hold`;
+                deltaBadge.className = "text-[10px] font-mono text-slate-400 mt-2";
             }
 
             const stabilityContainer = document.getElementById('live-stability-status');
-            if (Math.abs(delta) > 5000) {
-                stabilityContainer.innerText = "HIGH VOLATILITY";
+            if (Math.abs(delta) > 500) {
+                stabilityContainer.innerText = "DYNAMIC SHIFT";
                 stabilityContainer.className = "text-xl font-black text-amber-400 tracking-wide uppercase mt-2";
             } else {
-                stabilityContainer.innerText = "STABLE PROFILE";
+                stabilityContainer.innerText = "STABLE ENGINE";
                 stabilityContainer.className = "text-xl font-black text-emerald-400 tracking-wide uppercase mt-2";
             }
         }
@@ -502,14 +507,14 @@
 
             if (chartInstance) chartInstance.destroy();
 
-            document.getElementById('chart-subtitle').innerText = "Streaming real-time session tracking parameters at 2000ms steps";
+            document.getElementById('chart-subtitle').innerText = "Streaming live metrics straight from Rolimon parsing loops";
 
             chartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: rollingLivePoints.map(p => p.t.split(' ')[1] || p.t),
+                    labels: rollingLivePoints.map(p => p.t.includes(' ') ? p.t.split(' ')[1] : p.t),
                     datasets: [{
-                        label: 'Live Realtime Stream',
+                        label: 'Rolimons Scraper Stream',
                         data: rollingLivePoints.map(p => p.v),
                         borderColor: '#14b8a6',
                         backgroundColor: 'rgba(20, 184, 166, 0.05)',
@@ -544,7 +549,7 @@
         function appendLiveChartMetricPoint(timestampLabel, value) {
             if (!chartInstance || activeMode !== 'live') return;
 
-            const localizedTime = timestampLabel.split(' ')[1] || timestampLabel;
+            const localizedTime = timestampLabel.includes(' ') ? timestampLabel.split(' ')[1] : timestampLabel;
             chartInstance.data.labels.push(localizedTime);
             chartInstance.data.datasets[0].data.push(value);
 
@@ -706,7 +711,7 @@
 
             for (let i = data.length - 1; i >= 0; i--) {
                 const row = data[i];
-                if (row.v > 200000 || row.v < 10000) {
+                if (row.v > 200000 || row.v < 1000) {
                     count++;
                     const statusType = row.v > 200000 ? 'HIGH LOAD' : 'DROP WARN';
                     const textClass = row.v > 200000 ? 'text-emerald-400 bg-emerald-950/20 border-emerald-900/40' : 'text-rose-400 bg-rose-950/20 border-rose-900/40';
@@ -742,7 +747,7 @@
                 const row = tableData[i];
                 let nodeBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-900 text-slate-500 border border-slate-800">NORMAL</span>';
                 if (row.v > 200000) nodeBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-950/50 text-emerald-400 border border-emerald-900/50">PEAK</span>';
-                if (row.v < 10000) nodeBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-rose-950/50 text-rose-400 border border-rose-900/50">ANOMALOUS</span>';
+                if (row.v < 1000) nodeBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-rose-950/50 text-rose-400 border border-rose-900/50">ANOMALOUS</span>';
 
                 rowsHtml += `
                     <tr class="hover:bg-slate-900/30 transition">
