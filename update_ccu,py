@@ -16,7 +16,7 @@ DATA_FILE = "ccu_data.json"
 POLLING_INTERVAL_SECONDS = 15  # Background interval checking for updates
 
 app = Flask(__name__)
-CORS(app)  # Bypasses local browser security policies
+CORS(app)  # Bypasses browser security policies
 
 def get_ccu_from_rolimons():
     """Scrapes live player counts looking directly for the game_stat_data class."""
@@ -38,7 +38,6 @@ def get_ccu_from_rolimons():
         stat_boxes = soup.find_all(class_='stat-box') or soup.find_all('div', class_=lambda c: c and 'stat' in c)
         
         for box in stat_boxes:
-            # Check if this panel explicitly references active players
             box_text = box.get_text().lower()
             if 'player' in box_text or 'playing' in box_text:
                 target_element = box.find(class_='game_stat_data') or box.find(class_='stat-value')
@@ -47,10 +46,9 @@ def get_ccu_from_rolimons():
                     if digits_only:
                         return int(digits_only)
 
-        # Method 2: Isolated class scanner fallback if layout structure wraps items loosely
+        # Method 2: Isolated class scanner fallback
         elements = soup.find_all(class_='game_stat_data')
         for el in elements:
-            # Traverse upwards or sideways to confirm it's not the visits or favorites count
             parent_text = el.parent.get_text().lower() if el.parent else ""
             prev_text = el.find_previous().get_text().lower() if el.find_previous() else ""
             
@@ -59,7 +57,7 @@ def get_ccu_from_rolimons():
                 if digits_only:
                     return int(digits_only)
                     
-        # Method 3: Direct fallback to first populated instance if contextual validation was too strict
+        # Method 3: Direct fallback to first populated instance
         if elements:
             digits_only = re.sub(r'[^\d]', '', elements[0].text)
             if digits_only:
@@ -74,7 +72,6 @@ def background_telemetry_loop():
     """Background engine tracking live metrics and maintaining historical tracking logs."""
     print("Background telemetry scraper thread started.")
     while True:
-        # Load database safely
         if os.path.exists(DATA_FILE) and os.path.getsize(DATA_FILE) > 0:
             try:
                 with open(DATA_FILE, 'r') as f:
@@ -87,7 +84,6 @@ def background_telemetry_loop():
         if not isinstance(data_history, list):
             data_history = []
 
-        # Extract targeted data point
         new_ccu = get_ccu_from_rolimons()
         
         if new_ccu is not None:
@@ -96,7 +92,6 @@ def background_telemetry_loop():
                 "v": new_ccu
             }
             
-            # Save if data changed or if 5 minutes have elapsed since the last log row
             should_append = (
                 len(data_history) == 0 or 
                 data_history[-1]["v"] != new_ccu or 
@@ -105,8 +100,6 @@ def background_telemetry_loop():
             
             if should_append:
                 data_history.append(new_entry)
-                
-                # Cap logs at 5,000 items to protect baseline capacity limits
                 if len(data_history) > 5000:
                     data_history = data_history[-5000:]
                     
@@ -141,7 +134,6 @@ def serve_live_telemetry_stream():
     current_live_value = get_ccu_from_rolimons()
     
     if current_live_value is None:
-        # Fallback to the latest record in our JSON file if connection drops
         if os.path.exists(DATA_FILE):
             try:
                 with open(DATA_FILE, 'r') as f:
@@ -159,9 +151,8 @@ def serve_live_telemetry_stream():
     })
 
 if __name__ == '__main__':
-    # Initialize background process thread before deploying web routing engine
     telemetry_worker = Thread(target=background_telemetry_loop, daemon=True)
     telemetry_worker.start()
     
-    # Launch local service port mapping node
+    # Port 8080 or 5000 work perfectly in cloud/Codespaces web mappings
     app.run(host='0.0.0.0', port=5000, debug=False)
