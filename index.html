@@ -31,9 +31,12 @@
             <div class="flex bg-slate-900 rounded-lg p-0.5 border border-slate-800 text-xs font-mono">
                 <button id="mode-single" onclick="setDashboardMode('single')" class="px-3 py-1 rounded bg-slate-800 text-teal-400 font-medium cursor-pointer transition duration-150">VIEW SINGLE</button>
                 <button id="mode-compare" onclick="setDashboardMode('compare')" class="px-3 py-1 rounded text-slate-400 hover:text-slate-200 cursor-pointer transition duration-150">COMPARE PERIODS</button>
+                <button id="mode-live" onclick="setDashboardMode('live')" class="px-3 py-1 rounded text-slate-400 hover:text-slate-200 cursor-pointer transition duration-150 flex items-center gap-1">
+                    LIVE STREAM
+                </button>
             </div>
             
-            <div class="flex items-center gap-3 text-xs font-mono relative">
+            <div id="dropdown-selectors-container" class="flex items-center gap-3 text-xs font-mono relative">
                 <div class="relative id-dropdown-wrapper">
                     <button onclick="toggleCustomDropdown('dropdown-primary')" class="flex items-center gap-2 bg-slate-900 hover:bg-slate-800/80 border border-slate-800 rounded-lg px-3 py-1.5 cursor-pointer text-slate-200 font-bold transition duration-150 min-w-[160px] justify-between">
                         <span id="label-primary-btn">Target: ALL TIME</span>
@@ -55,6 +58,33 @@
 
     <main class="p-6 space-y-6 max-w-[1600px] mx-auto">
         
+        <div id="live-monitor-section" class="hidden bg-gradient-to-b from-slate-900 to-slate-950 border border-teal-500/30 rounded-xl p-6 shadow-2xl relative overflow-hidden">
+            <div class="absolute top-0 right-0 p-4 font-mono text-[10px] text-teal-500 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
+                ACTIVE MONITOR SOCKET OPEN
+            </div>
+            <h2 class="text-xs font-bold tracking-widest uppercase text-teal-400 font-mono mb-1">LIVE STATUS MONITOR</h2>
+            <p class="text-[10px] text-slate-400 font-mono mb-6">Real-time simulation window stream showing rolling telemetry network loads.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-slate-950/60 border border-slate-800 rounded-lg p-4 flex flex-col justify-center items-center text-center">
+                    <p class="text-[10px] font-mono text-slate-400 uppercase tracking-widest font-semibold mb-1">CURRENT REALTIME CCU</p>
+                    <div id="live-current-val" class="text-5xl font-black font-mono text-teal-400 tracking-tight">-</div>
+                    <div id="live-current-delta" class="text-[10px] font-mono text-slate-500 mt-2">Connecting telemetry...</div>
+                </div>
+                <div class="bg-slate-950/60 border border-slate-800 rounded-lg p-4 flex flex-col justify-center items-center text-center">
+                    <p class="text-[10px] font-mono text-slate-400 uppercase tracking-widest font-semibold mb-1">SESSION ROLLING PEAK</p>
+                    <div id="live-session-peak" class="text-4xl font-black font-mono text-slate-100 tracking-tight">-</div>
+                    <p class="text-[10px] font-mono text-slate-500 mt-2">Highest hit in this sequence</p>
+                </div>
+                <div class="bg-slate-950/60 border border-slate-800 rounded-lg p-4 flex flex-col justify-center items-center text-center">
+                    <p class="text-[10px] font-mono text-slate-400 uppercase tracking-widest font-semibold mb-1">TELEMETRY STABILITY RATE</p>
+                    <div id="live-stability-status" class="text-xl font-black text-emerald-400 tracking-wide uppercase mt-2">OPTIMAL</div>
+                    <p class="text-[10px] font-mono text-slate-500 mt-2">Jitter factor analysis pipeline</p>
+                </div>
+            </div>
+        </div>
+
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-5 relative group transition shadow-sm">
                 <p class="text-[11px] font-mono text-slate-400 uppercase tracking-widest font-semibold">PEAK CCU</p>
@@ -164,7 +194,12 @@
         let selectedCompareVal = '';
         let selectedSortVal = 'date-desc';
 
-       const DATA_URL = "ccu_data.json";
+        // Realtime Tracking State Variables
+        let liveTimerInterval = null;
+        let rollingLivePoints = [];
+        let sessionHighestPeak = 0;
+
+        const DATA_URL = "ccu_data.json";
 
         function toggleCustomDropdown(dropdownId) {
             const dropdown = document.getElementById(dropdownId);
@@ -286,20 +321,41 @@
             
             const btnSingle = document.getElementById('mode-single');
             const btnCompare = document.getElementById('mode-compare');
+            const btnLive = document.getElementById('mode-live');
             const compContainer = document.getElementById('compare-selector-container');
+            const dropdownWrapper = document.getElementById('dropdown-selectors-container');
             const tableSection = document.getElementById('ledger-table-section');
-            const primaryLabel = document.getElementById('label-primary-btn');
+            const liveMonitorSection = document.getElementById('live-monitor-section');
+
+            // Deconstruct alternative active intervals if switching paths
+            if (liveTimerInterval) {
+                clearInterval(liveTimerInterval);
+                liveTimerInterval = null;
+            }
+
+            // Normal state presentation toggles
+            btnSingle.className = "px-3 py-1 rounded text-slate-400 hover:text-slate-200 cursor-pointer transition duration-150";
+            btnCompare.className = "px-3 py-1 rounded text-slate-400 hover:text-slate-200 cursor-pointer transition duration-150";
+            btnLive.className = "px-3 py-1 rounded text-slate-400 hover:text-slate-200 cursor-pointer transition duration-150";
+            
+            compContainer.classList.add('hidden');
+            dropdownWrapper.classList.remove('hidden');
+            tableSection.classList.remove('hidden');
+            liveMonitorSection.classList.add('hidden');
 
             if (mode === 'single') {
                 btnSingle.className = "px-3 py-1 rounded bg-slate-800 text-teal-400 font-medium cursor-pointer transition duration-150";
-                btnCompare.className = "px-3 py-1 rounded text-slate-400 hover:text-slate-200 cursor-pointer transition duration-150";
-                compContainer.classList.add('hidden');
-                tableSection.classList.remove('hidden');
-            } else {
-                btnSingle.className = "px-3 py-1 rounded text-slate-400 hover:text-slate-200 cursor-pointer transition duration-150";
+            } else if (mode === 'compare') {
                 btnCompare.className = "px-3 py-1 rounded bg-slate-800 text-teal-400 font-medium cursor-pointer transition duration-150";
                 compContainer.classList.remove('hidden');
+            } else if (mode === 'live') {
+                btnLive.className = "px-3 py-1 rounded bg-slate-800 text-teal-400 font-medium cursor-pointer transition duration-150";
+                dropdownWrapper.classList.add('hidden');
                 tableSection.classList.add('hidden');
+                liveMonitorSection.classList.remove('hidden');
+                
+                initializeLiveMonitoringSystem();
+                return;
             }
 
             handleFilterChange();
@@ -374,6 +430,132 @@
             }
         }
 
+        // Live Realtime Dynamic Generator Execution Logic
+        function initializeLiveMonitoringSystem() {
+            if(rawCCUData.length === 0) return;
+
+            // Seed initial 15 points using tail elements of loaded configuration metrics
+            const seedingBase = rawCCUData.slice(-15);
+            rollingLivePoints = seedingBase.map(item => ({
+                t: item.t,
+                v: item.v
+            }));
+
+            // Track state peaks across running active scope
+            sessionHighestPeak = Math.max(...rollingLivePoints.map(p => p.v));
+            updateLiveKPIVisualizations(0);
+
+            renderLiveChartStructure();
+
+            // Fire interval worker process pipeline cascading updates every 2 seconds
+            liveTimerInterval = setInterval(() => {
+                const dynamicOffset = Math.floor((Math.random() - 0.5) * 8000);
+                const baselineValue = rawCCUData[Math.floor(Math.random() * rawCCUData.length)]?.v || 80000;
+                const newlyCalculatedCCU = Math.max(2000, baselineValue + dynamicOffset);
+
+                if (newlyCalculatedCCU > sessionHighestPeak) {
+                    sessionHighestPeak = newlyCalculatedCCU;
+                }
+
+                const currentTimeStamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
+                
+                rollingLivePoints.push({ t: currentTimeStamp, v: newlyCalculatedCCU });
+                if (rollingLivePoints.length > 20) {
+                    rollingLivePoints.shift();
+                }
+
+                updateLiveKPIVisualizations(dynamicOffset);
+                appendLiveChartMetricPoint(currentTimeStamp, newlyCalculatedCCU);
+            }, 2000);
+        }
+
+        function updateLiveKPIVisualizations(delta) {
+            if(rollingLivePoints.length === 0) return;
+            const absoluteCurrent = rollingLivePoints[rollingLivePoints.length - 1].v;
+
+            document.getElementById('live-current-val').innerText = absoluteCurrent.toLocaleString();
+            document.getElementById('live-session-peak').innerText = sessionHighestPeak.toLocaleString();
+
+            const deltaBadge = document.getElementById('live-current-delta');
+            if (delta >= 0) {
+                deltaBadge.innerText = `▲ +${delta.toLocaleString()} variance offset`;
+                deltaBadge.className = "text-[10px] font-mono text-emerald-400 mt-2";
+            } else {
+                deltaBadge.innerText = `▼ ${delta.toLocaleString()} variance offset`;
+                deltaBadge.className = "text-[10px] font-mono text-rose-400 mt-2";
+            }
+
+            const stabilityContainer = document.getElementById('live-stability-status');
+            if (Math.abs(delta) > 5000) {
+                stabilityContainer.innerText = "HIGH VOLATILITY";
+                stabilityContainer.className = "text-xl font-black text-amber-400 tracking-wide uppercase mt-2";
+            } else {
+                stabilityContainer.innerText = "STABLE PROFILE";
+                stabilityContainer.className = "text-xl font-black text-emerald-400 tracking-wide uppercase mt-2";
+            }
+        }
+
+        function renderLiveChartStructure() {
+            const chartCanvas = document.getElementById('ccuLineChart');
+            if (!chartCanvas) return;
+            const ctx = chartCanvas.getContext('2d');
+
+            if (chartInstance) chartInstance.destroy();
+
+            document.getElementById('chart-subtitle').innerText = "Streaming real-time session tracking parameters at 2000ms steps";
+
+            chartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: rollingLivePoints.map(p => p.t.split(' ')[1] || p.t),
+                    datasets: [{
+                        label: 'Live Realtime Stream',
+                        data: rollingLivePoints.map(p => p.v),
+                        borderColor: '#14b8a6',
+                        backgroundColor: 'rgba(20, 184, 166, 0.05)',
+                        borderWidth: 2.5,
+                        pointRadius: 3,
+                        fill: true,
+                        tension: 0.2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: { duration: 300 },
+                    scales: {
+                        x: {
+                            grid: { color: 'rgba(51, 65, 85, 0.08)' },
+                            ticks: { color: '#64748b', font: { size: 9, family: 'mono' } }
+                        },
+                        y: {
+                            grid: { color: 'rgba(51, 65, 85, 0.12)' },
+                            ticks: {
+                                color: '#64748b',
+                                font: { size: 9, family: 'mono' },
+                                callback: function(val) { return val >= 1000 ? (val / 1000) + 'k' : val; }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function appendLiveChartMetricPoint(timestampLabel, value) {
+            if (!chartInstance || activeMode !== 'live') return;
+
+            const localizedTime = timestampLabel.split(' ')[1] || timestampLabel;
+            chartInstance.data.labels.push(localizedTime);
+            chartInstance.data.datasets[0].data.push(value);
+
+            if (chartInstance.data.labels.length > 20) {
+                chartInstance.data.labels.shift();
+                chartInstance.data.datasets[0].data.shift();
+            }
+
+            chartInstance.update('none');
+        }
+
         function renderChartMatrix() {
             const chartCanvas = document.getElementById('ccuLineChart');
             if (!chartCanvas) return;
@@ -439,7 +621,6 @@
                         legend: { display: activeMode === 'compare', labels: { color: '#94a3b8', font: { size: 10, family: 'mono' } } },
                         tooltip: {
                             callbacks: {
-                                // FIXED HOVER POPUP CONTAINER: Pulls precise dates into view when tracking points
                                 title: function(context) {
                                     if (activeMode === 'single') {
                                         return primaryFilteredData[context[0].dataIndex]?.t || '';
@@ -451,7 +632,6 @@
                                     if (label) label += ': ';
                                     if (context.parsed.y !== null) label += context.parsed.y.toLocaleString();
                                     
-                                    // Append true calendar mapping descriptors dynamically 
                                     if (activeMode === 'compare') {
                                         const idx = context.dataIndex;
                                         if (context.datasetIndex === 0 && primaryFilteredData[idx]) {
