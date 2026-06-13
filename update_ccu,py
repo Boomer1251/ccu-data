@@ -1,0 +1,29 @@
+import requests
+import json
+from datetime import datetime
+
+# REPLACE WITH YOUR ACTUAL UNIVERSE ID
+UNIVERSE_ID = "18687417158" 
+
+def get_ccu():
+    url = f"https://games.roproxy.com/v1/games?universeIds={UNIVERSE_ID}"
+    response = requests.get(url)
+    if response.status_code == 200:
+        data = response.json()
+        return data['data'][0]['playing']
+    return None
+
+# Load current data
+with open('ccu_data.json', 'r') as f:
+    data = json.load(f)
+
+new_ccu = get_ccu()
+if new_ccu is not None:
+    new_entry = {"t": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "v": new_ccu}
+    data.append(new_entry)
+    
+    # Keep only the last 100 entries to prevent the file from getting too big
+    data = data[-100:] 
+    
+    with open('ccu_data.json', 'w') as f:
+        json.dump(data, f, indent=4)
