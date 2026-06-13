@@ -1,29 +1,53 @@
 import requests
 import json
+import os
 from datetime import datetime
 
-# REPLACE WITH YOUR ACTUAL UNIVERSE ID
+# YOUR UNIVERSE ID
 UNIVERSE_ID = "18687417158" 
+DATA_FILE = "ccu_data.json"
 
 def get_ccu():
     url = f"https://games.roproxy.com/v1/games?universeIds={UNIVERSE_ID}"
-    response = requests.get(url)
-    if response.status_code == 200:
-        data = response.json()
-        return data['data'][0]['playing']
+    try:
+        response = requests.get(url, timeout=10)
+        if response.status_code == 200:
+            data = response.json()
+            if 'data' in data and len(data['data']) > 0:
+                return data['data'][0]['playing']
+    except Exception as e:
+        print(f"Error fetching telemetry from RoProxy: {e}")
     return None
 
-# Load current data
-with open('ccu_data.json', 'r') as f:
-    data = json.load(f)
+# Load current data safely
+if os.path.exists(DATA_FILE) and os.path.getsize(DATA_FILE) > 0:
+    try:
+        with open(DATA_FILE, 'r') as f:
+            data = json.load(f)
+    except json.JSONDecodeError:
+        print("Warning: Corrupted JSON detected. Resetting array.")
+        data = []
+else:
+    data = []
+
+# Ensure data is always a list
+if not isinstance(data, list):
+    data = []
 
 new_ccu = get_ccu()
+
 if new_ccu is not None:
+    # Log to action output for debugging
+    print(f"Fetched live CCU stream target: {new_ccu}")
+    
     new_entry = {"t": datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "v": new_ccu}
     data.append(new_entry)
     
-    # Keep only the last 100 entries to prevent the file from getting too big
+    # Cap the matrix history stream at the last 100 metrics rows
     data = data[-100:] 
     
-    with open('ccu_data.json', 'w') as f:
+    with open(DATA_FILE, 'w') as f:
         json.dump(data, f, indent=4)
+    print("Successfully committed logs locally to data registry.")
+else:
+    print("Skipping entry update: API target did not respond gracefully.")
