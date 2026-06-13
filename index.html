@@ -23,7 +23,7 @@
             </span>
             <div>
                 <h1 class="text-md font-black tracking-wider text-slate-100 uppercase">CCU ANALYTICS</h1>
-                <p class="text-[9px] text-slate-500 font-mono tracking-tight">ROLIMONS SCRAPER METRICS ENGINE</p>
+                <p class="text-[9px] text-slate-500 font-mono tracking-tight">LIVE METRICS ENGINE</p>
             </div>
         </div>
         
@@ -31,12 +31,9 @@
             <div class="flex bg-slate-900 rounded-lg p-0.5 border border-slate-800 text-xs font-mono">
                 <button id="mode-single" onclick="setDashboardMode('single')" class="px-3 py-1 rounded bg-slate-800 text-teal-400 font-medium cursor-pointer transition duration-150">VIEW SINGLE</button>
                 <button id="mode-compare" onclick="setDashboardMode('compare')" class="px-3 py-1 rounded text-slate-400 hover:text-slate-200 cursor-pointer transition duration-150">COMPARE PERIODS</button>
-                <button id="mode-live" onclick="setDashboardMode('live')" class="px-3 py-1 rounded text-slate-400 hover:text-slate-200 cursor-pointer transition duration-150 flex items-center gap-1">
-                    LIVE STREAM
-                </button>
             </div>
             
-            <div id="dropdown-selectors-container" class="flex items-center gap-3 text-xs font-mono relative">
+            <div class="flex items-center gap-3 text-xs font-mono relative">
                 <div class="relative id-dropdown-wrapper">
                     <button onclick="toggleCustomDropdown('dropdown-primary')" class="flex items-center gap-2 bg-slate-900 hover:bg-slate-800/80 border border-slate-800 rounded-lg px-3 py-1.5 cursor-pointer text-slate-200 font-bold transition duration-150 min-w-[160px] justify-between">
                         <span id="label-primary-btn">Target: ALL TIME</span>
@@ -58,33 +55,6 @@
 
     <main class="p-6 space-y-6 max-w-[1600px] mx-auto">
         
-        <div id="live-monitor-section" class="hidden bg-gradient-to-b from-slate-900 to-slate-950 border border-teal-500/30 rounded-xl p-6 shadow-2xl relative overflow-hidden">
-            <div class="absolute top-0 right-0 p-4 font-mono text-[10px] text-teal-500 flex items-center gap-1.5">
-                <span class="w-2 h-2 rounded-full bg-teal-400 animate-pulse"></span>
-                ACTIVE MONITOR SOCKET OPEN
-            </div>
-            <h2 class="text-xs font-bold tracking-widest uppercase text-teal-400 font-mono mb-1">LIVE STATUS MONITOR</h2>
-            <p class="text-[10px] text-slate-400 font-mono mb-6">Real-time interface connected directly to automated backend scanning streams.</p>
-            
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-slate-950/60 border border-slate-800 rounded-lg p-4 flex flex-col justify-center items-center text-center">
-                    <p class="text-[10px] font-mono text-slate-400 uppercase tracking-widest font-semibold mb-1">CURRENT REALTIME CCU</p>
-                    <div id="live-current-val" class="text-5xl font-black font-mono text-teal-400 tracking-tight">-</div>
-                    <div id="live-current-delta" class="text-[10px] font-mono text-slate-500 mt-2">Connecting telemetry...</div>
-                </div>
-                <div class="bg-slate-950/60 border border-slate-800 rounded-lg p-4 flex flex-col justify-center items-center text-center">
-                    <p class="text-[10px] font-mono text-slate-400 uppercase tracking-widest font-semibold mb-1">SESSION ROLLING PEAK</p>
-                    <div id="live-session-peak" class="text-4xl font-black font-mono text-slate-100 tracking-tight">-</div>
-                    <p class="text-[10px] font-mono text-slate-500 mt-2">Highest hit in this sequence</p>
-                </div>
-                <div class="bg-slate-950/60 border border-slate-800 rounded-lg p-4 flex flex-col justify-center items-center text-center">
-                    <p class="text-[10px] font-mono text-slate-400 uppercase tracking-widest font-semibold mb-1">TELEMETRY STABILITY RATE</p>
-                    <div id="live-stability-status" class="text-xl font-black text-emerald-400 tracking-wide uppercase mt-2">OPTIMAL</div>
-                    <p class="text-[10px] font-mono text-slate-500 mt-2">Jitter factor analysis pipeline</p>
-                </div>
-            </div>
-        </div>
-
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-slate-900/40 border border-slate-800 rounded-xl p-5 relative group transition shadow-sm">
                 <p class="text-[11px] font-mono text-slate-400 uppercase tracking-widest font-semibold">PEAK CCU</p>
@@ -194,14 +164,7 @@
         let selectedCompareVal = '';
         let selectedSortVal = 'date-desc';
 
-        // Realtime Tracking State Variables
-        let liveTimerInterval = null;
-        let rollingLivePoints = [];
-        let sessionHighestPeak = 0;
-
-        // Flask API mapping configurations
-        const DATA_URL = "http://127.0.0.1:5000/ccu_data.json";
-        const LIVE_API_URL = "http://127.0.0.1:5000/api/ccu/live";
+        const DATA_URL = "ccu_data.json";
 
         function toggleCustomDropdown(dropdownId) {
             const dropdown = document.getElementById(dropdownId);
@@ -218,17 +181,18 @@
 
         async function fetchAndInitializeDashboard() {
             try {
-                const response = await fetch(DATA_URL);
+                // FIXED: Appends a unique cache-busting timestamp to break old browser memory bounds
+                const response = await fetch(`${DATA_URL}?_cb=${Date.now()}`);
                 if (!response.ok) throw new Error(`Network problem status: ${response.status}`);
                 
                 const rawPayload = await response.json();
-                rawCCUData = rawPayload.filter(row => row && row.v >= 0 && row.t);
+                rawCCUData = rawPayload.filter(row => row && row.v > 0 && row.t);
                 
                 buildCustomTimeframeLists();
                 processDataPipeline();
                 
             } catch (error) {
-                console.error("Failure pulling CCU ledger from API application instance:", error);
+                console.error("Failure pulling CCU ledger from GitHub:", error);
                 document.getElementById('table-body').innerHTML = `
                     <tr>
                         <td colspan="3" class="p-8 text-center text-rose-400 font-mono text-xs">
@@ -278,13 +242,14 @@
                 compareHtml += `<button onclick="selectTimeframeOption('compare', '${tf}', 'VS: ${label}')" class="w-full text-left px-4 py-2 text-slate-300 hover:bg-slate-900 hover:text-teal-400 transition text-xs font-semibold">${label}</button>`;
             });
 
-            primaryMenu.innerHTML = primaryHtml;
-            compareMenu.innerHTML = compareHtml;
+            if (primaryMenu) primaryMenu.innerHTML = primaryHtml;
+            if (compareMenu) compareMenu.innerHTML = compareHtml;
 
             if (sortedMonths.length > 0) {
                 selectedCompareVal = sortedMonths[0];
                 const initialLabel = `${monthNames[parseInt(selectedCompareVal.split('-')[1], 10) - 1]} ${selectedCompareVal.split('-')[0]}`;
-                document.getElementById('label-compare-btn').innerText = `VS: ${initialLabel}`;
+                const compBtn = document.getElementById('label-compare-btn');
+                if (compBtn) compBtn.innerText = `VS: ${initialLabel}`;
             }
         }
 
@@ -321,39 +286,19 @@
             
             const btnSingle = document.getElementById('mode-single');
             const btnCompare = document.getElementById('mode-compare');
-            const btnLive = document.getElementById('mode-live');
             const compContainer = document.getElementById('compare-selector-container');
-            const dropdownWrapper = document.getElementById('dropdown-selectors-container');
             const tableSection = document.getElementById('ledger-table-section');
-            const liveMonitorSection = document.getElementById('live-monitor-section');
-
-            if (liveTimerInterval) {
-                clearInterval(liveTimerInterval);
-                liveTimerInterval = null;
-            }
-
-            btnSingle.className = "px-3 py-1 rounded text-slate-400 hover:text-slate-200 cursor-pointer transition duration-150";
-            btnCompare.className = "px-3 py-1 rounded text-slate-400 hover:text-slate-200 cursor-pointer transition duration-150";
-            btnLive.className = "px-3 py-1 rounded text-slate-400 hover:text-slate-200 cursor-pointer transition duration-150";
-            
-            compContainer.classList.add('hidden');
-            dropdownWrapper.classList.remove('hidden');
-            tableSection.classList.remove('hidden');
-            liveMonitorSection.classList.add('hidden');
 
             if (mode === 'single') {
-                btnSingle.className = "px-3 py-1 rounded bg-slate-800 text-teal-400 font-medium cursor-pointer transition duration-150";
-            } else if (mode === 'compare') {
-                btnCompare.className = "px-3 py-1 rounded bg-slate-800 text-teal-400 font-medium cursor-pointer transition duration-150";
-                compContainer.classList.remove('hidden');
-            } else if (mode === 'live') {
-                btnLive.className = "px-3 py-1 rounded bg-slate-800 text-teal-400 font-medium cursor-pointer transition duration-150";
-                dropdownWrapper.classList.add('hidden');
-                tableSection.classList.add('hidden');
-                liveMonitorSection.classList.remove('hidden');
-                
-                initializeLiveMonitoringSystem();
-                return;
+                if (btnSingle) btnSingle.className = "px-3 py-1 rounded bg-slate-800 text-teal-400 font-medium cursor-pointer transition duration-150";
+                if (btnCompare) btnCompare.className = "px-3 py-1 rounded text-slate-400 hover:text-slate-200 cursor-pointer transition duration-150";
+                if (compContainer) compContainer.classList.add('hidden');
+                if (tableSection) tableSection.classList.remove('hidden');
+            } else {
+                if (btnSingle) btnSingle.className = "px-3 py-1 rounded text-slate-400 hover:text-slate-200 cursor-pointer transition duration-150";
+                if (btnCompare) btnCompare.className = "px-3 py-1 rounded bg-slate-800 text-teal-400 font-medium cursor-pointer transition duration-150";
+                if (compContainer) compContainer.classList.remove('hidden');
+                if (tableSection) tableSection.classList.add('hidden');
             }
 
             handleFilterChange();
@@ -426,139 +371,6 @@
                 document.getElementById('stat-trend').innerText = "INSIGNIFICANT";
                 document.getElementById('stat-trend').className = "text-xl font-black text-slate-500 mt-2 tracking-wide";
             }
-        }
-
-        // Live Realtime Dynamic Synchronizer Pipeline
-        async function initializeLiveMonitoringSystem() {
-            if(rawCCUData.length === 0) {
-                rollingLivePoints = [{t: new Date().toLocaleTimeString(), v: 0}];
-            } else {
-                const seedingBase = rawCCUData.slice(-15);
-                rollingLivePoints = seedingBase.map(item => ({
-                    t: item.t,
-                    v: item.v
-                }));
-            }
-
-            sessionHighestPeak = Math.max(...rollingLivePoints.map(p => p.v), 0);
-            updateLiveKPIVisualizations(0, rollingLivePoints[rollingLivePoints.length - 1]?.v || 0);
-            renderLiveChartStructure();
-
-            // Interrogates the active local server instance metrics route
-            liveTimerInterval = setInterval(async () => {
-                try {
-                    const response = await fetch(LIVE_API_URL);
-                    if (!response.ok) return;
-                    const liveStreamFrame = await response.json();
-                    
-                    const newlyCalculatedCCU = liveStreamFrame.v;
-                    const currentTimeStamp = liveStreamFrame.t;
-
-                    let previousVal = rollingLivePoints.length > 0 ? rollingLivePoints[rollingLivePoints.length - 1].v : newlyCalculatedCCU;
-                    let dynamicOffset = newlyCalculatedCCU - previousVal;
-
-                    if (newlyCalculatedCCU > sessionHighestPeak) {
-                        sessionHighestPeak = newlyCalculatedCCU;
-                    }
-                    
-                    rollingLivePoints.push({ t: currentTimeStamp, v: newlyCalculatedCCU });
-                    if (rollingLivePoints.length > 20) {
-                        rollingLivePoints.shift();
-                    }
-
-                    updateLiveKPIVisualizations(dynamicOffset, newlyCalculatedCCU);
-                    appendLiveChartMetricPoint(currentTimeStamp, newlyCalculatedCCU);
-                } catch (err) {
-                    console.error("Telemetry interface pipeline lost connection to local API service:", err);
-                }
-            }, 5000); 
-        }
-
-        function updateLiveKPIVisualizations(delta, absoluteCurrent) {
-            document.getElementById('live-current-val').innerText = absoluteCurrent.toLocaleString();
-            document.getElementById('live-session-peak').innerText = sessionHighestPeak.toLocaleString();
-
-            const deltaBadge = document.getElementById('live-current-delta');
-            if (delta > 0) {
-                deltaBadge.innerText = `▲ +${delta.toLocaleString()} variance step`;
-                deltaBadge.className = "text-[10px] font-mono text-emerald-400 mt-2";
-            } else if (delta < 0) {
-                deltaBadge.innerText = `▼ ${delta.toLocaleString()} variance step`;
-                deltaBadge.className = "text-[10px] font-mono text-rose-400 mt-2";
-            } else {
-                deltaBadge.innerText = `◼ Static timeline hold`;
-                deltaBadge.className = "text-[10px] font-mono text-slate-400 mt-2";
-            }
-
-            const stabilityContainer = document.getElementById('live-stability-status');
-            if (Math.abs(delta) > 500) {
-                stabilityContainer.innerText = "DYNAMIC SHIFT";
-                stabilityContainer.className = "text-xl font-black text-amber-400 tracking-wide uppercase mt-2";
-            } else {
-                stabilityContainer.innerText = "STABLE ENGINE";
-                stabilityContainer.className = "text-xl font-black text-emerald-400 tracking-wide uppercase mt-2";
-            }
-        }
-
-        function renderLiveChartStructure() {
-            const chartCanvas = document.getElementById('ccuLineChart');
-            if (!chartCanvas) return;
-            const ctx = chartCanvas.getContext('2d');
-
-            if (chartInstance) chartInstance.destroy();
-
-            document.getElementById('chart-subtitle').innerText = "Streaming live metrics straight from Rolimon parsing loops";
-
-            chartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: rollingLivePoints.map(p => p.t.includes(' ') ? p.t.split(' ')[1] : p.t),
-                    datasets: [{
-                        label: 'Rolimons Scraper Stream',
-                        data: rollingLivePoints.map(p => p.v),
-                        borderColor: '#14b8a6',
-                        backgroundColor: 'rgba(20, 184, 166, 0.05)',
-                        borderWidth: 2.5,
-                        pointRadius: 3,
-                        fill: true,
-                        tension: 0.2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    animation: { duration: 300 },
-                    scales: {
-                        x: {
-                            grid: { color: 'rgba(51, 65, 85, 0.08)' },
-                            ticks: { color: '#64748b', font: { size: 9, family: 'mono' } }
-                        },
-                        y: {
-                            grid: { color: 'rgba(51, 65, 85, 0.12)' },
-                            ticks: {
-                                color: '#64748b',
-                                font: { size: 9, family: 'mono' },
-                                callback: function(val) { return val >= 1000 ? (val / 1000) + 'k' : val; }
-                            }
-                        }
-                    }
-                }
-            });
-        }
-
-        function appendLiveChartMetricPoint(timestampLabel, value) {
-            if (!chartInstance || activeMode !== 'live') return;
-
-            const localizedTime = timestampLabel.includes(' ') ? timestampLabel.split(' ')[1] : timestampLabel;
-            chartInstance.data.labels.push(localizedTime);
-            chartInstance.data.datasets[0].data.push(value);
-
-            if (chartInstance.data.labels.length > 20) {
-                chartInstance.data.labels.shift();
-                chartInstance.data.datasets[0].data.shift();
-            }
-
-            chartInstance.update('none');
         }
 
         function renderChartMatrix() {
@@ -711,7 +523,7 @@
 
             for (let i = data.length - 1; i >= 0; i--) {
                 const row = data[i];
-                if (row.v > 200000 || row.v < 1000) {
+                if (row.v > 200000 || row.v < 10000) {
                     count++;
                     const statusType = row.v > 200000 ? 'HIGH LOAD' : 'DROP WARN';
                     const textClass = row.v > 200000 ? 'text-emerald-400 bg-emerald-950/20 border-emerald-900/40' : 'text-rose-400 bg-rose-950/20 border-rose-900/40';
@@ -747,7 +559,7 @@
                 const row = tableData[i];
                 let nodeBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-900 text-slate-500 border border-slate-800">NORMAL</span>';
                 if (row.v > 200000) nodeBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-950/50 text-emerald-400 border border-emerald-900/50">PEAK</span>';
-                if (row.v < 1000) nodeBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-rose-950/50 text-rose-400 border border-rose-900/50">ANOMALOUS</span>';
+                if (row.v < 10000) nodeBadge = '<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-rose-950/50 text-rose-400 border border-rose-900/50">ANOMALOUS</span>';
 
                 rowsHtml += `
                     <tr class="hover:bg-slate-900/30 transition">
